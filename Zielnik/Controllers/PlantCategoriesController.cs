@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
+using Zielnik.DTOs;
 using Zielnik.Entities;
 
 namespace Zielnik.Controllers
@@ -18,68 +19,93 @@ namespace Zielnik.Controllers
 
         // GET: api/categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlantCategory>>> GetCategories()
+        public async Task<ActionResult<List<CategoryDto>>> GetCategories()
         {
-            return await _context.PlantCategories.ToListAsync();
+            var categories = await _context.PlantCategories
+    .Include(c => c.Plants)
+    .Select(c => new CategoryDto
+    {
+        Id = c.Id,
+        Name = c.Name,
+        Plants = c.Plants
+            .Select(p => p.Name)
+            .ToList()
+    })
+    .ToListAsync();
+
+            return Ok(categories);
         }
 
         // GET: api/categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlantCategory>> GetCategory(Guid id)
+        public async Task<ActionResult<CategoryDto>> GetCategory(Guid id)
         {
-            var category = await _context.PlantCategories.FindAsync(id);
+            var category = await _context.PlantCategories
+    .Include(c => c.Plants)
+    .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
             {
                 return NotFound();
             }
 
-            return category;
+            return Ok(new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Plants = category.Plants
+        .Select(p => p.Name)
+        .ToList()
+            });
         }
 
         // POST: api/categories
         [HttpPost]
-        public async Task<ActionResult<PlantCategory>> CreateCategory(PlantCategory category)
+        public async Task<ActionResult<CategoryDto>> CreateCategory(CreateCategoryDto dto)
         {
+            var category = new PlantCategory
+            {
+                Name = dto.Name
+            };
+
             _context.PlantCategories.Add(category);
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetCategory),
-                new { id = category.Id },
-                category);
+            return Ok(new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Plants = new List<string>()
+            });
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(Guid id, PlantCategory? category)
+        public async Task<ActionResult<CategoryDto>> UpdateCategory(
+     Guid id,
+     UpdateCategoryDto dto)
         {
+            var category = await _context.PlantCategories
+                .Include(c => c.Plants)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
             if (category == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            if (id != category.Id)
+            category.Name = dto.Name;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new CategoryDto
             {
-                return BadRequest();
-            }
-
-            _context.Entry(category).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.PlantCategories.Any(c => c.Id == id))
-                {
-                    return NotFound();
-                }
-
-                throw;
-            }
-
-            return NoContent();
+                Id = category.Id,
+                Name = category.Name,
+                Plants = category.Plants
+                    .Select(p => p.Name)
+                    .ToList()
+            });
         }
 
         // DELETE: api/categories/5

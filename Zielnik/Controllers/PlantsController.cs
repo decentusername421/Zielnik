@@ -37,14 +37,27 @@ namespace Zielnik.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Plant>> CreatePlant(Plant plant)
+        public async Task<ActionResult<PlantDto>> CreatePlant(CreatePlantDto dto)
         {
+            var plant = new Plant
+            {
+                Name = dto.Name,
+                Species = dto.Species,
+                WateringFrequencyDays = dto.WateringFrequencyDays
+            };
 
             _context.Plants.Add(plant);
 
             await _context.SaveChangesAsync();
 
-            return Ok(plant);
+            return Ok(new PlantDto
+            {
+                Id = plant.Id,
+                Name = plant.Name,
+                Species = plant.Species,
+                WateringFrequencyDays = plant.WateringFrequencyDays,
+                Categories = new List<string>()
+            });
         }
 
         [HttpPost("{plantId}/categories/{categoryId}")]
@@ -72,6 +85,55 @@ namespace Zielnik.Controllers
             }
 
             plant.Categories.Add(category);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<PlantDto>> UpdatePlant(
+    Guid id,
+    UpdatePlantDto dto)
+        {
+            var plant = await _context.Plants
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (plant == null)
+            {
+                return NotFound();
+            }
+
+            plant.Name = dto.Name;
+            plant.Species = dto.Species;
+            plant.WateringFrequencyDays = dto.WateringFrequencyDays;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new PlantDto
+            {
+                Id = plant.Id,
+                Name = plant.Name,
+                Species = plant.Species,
+                WateringFrequencyDays = plant.WateringFrequencyDays,
+                Categories = plant.Categories
+                    .Select(c => c.Name)
+                    .ToList()
+            });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePlant(Guid id)
+        {
+            var plant = await _context.Plants.FindAsync(id);
+
+            if (plant == null)
+            {
+                return NotFound();
+            }
+
+            _context.Plants.Remove(plant);
 
             await _context.SaveChangesAsync();
 
