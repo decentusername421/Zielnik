@@ -1,0 +1,188 @@
+﻿<h1>🌿 Szczegóły i Edycja Ogrodu</h1>
+
+<div id="successMessage" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold;">
+    ✅ Zmiany zostały zapisane!
+</div>
+
+<div id="garden-info" style="background: #f4f9f4; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9;">
+    <div id="garden">⏳ Ładowanie danych ogrodu...</div>
+</div>
+
+<hr>
+
+<div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <h2>➕ Posadź nową roślinę w ogrodzie</h2>
+
+    <label for="categorySelect"><b>Filtruj według gatunku:</b></label><br>
+    <select id="categorySelect" onchange="filterPlants()" style="padding: 8px; width: 100%; max-width: 300px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ccc;">
+        <option value="all">⭐ Wszystkie</option>
+        <option value="Drzewa">🌳 Drzewa</option>
+        <option value="Kwiaty">🌸 Kwiaty</option>
+        <option value="Owoce">🍎 Owoce</option>
+        <option value="Warzywa">🥕 Warzywa</option>
+    </select>
+
+    <div id="plants-list">⏳ Ładowanie bazy roślin...</div>
+</div>
+
+<script>
+    // Pobranie ID ogrodu bezpośrednio z adresu URL, co jest bezpieczniejsze w MVC
+    const pathSegments = window.location.pathname.split('/');
+    const id = pathSegments[pathSegments.length - 1];
+
+    let allPlants = []; // Globalna lista wszystkich roślin z bazy danych
+    let currentGardenName = ""; // Przechowywanie aktualnej nazwy ogrodu
+
+    // 1. POBIERANIE DANYCH O OGRODZIE I JEGO ROŚLINACH
+    function loadGarden() {
+        // Używamy pełnej ścieżki od roota strony
+        fetch(window.location.origin + '/api/Gardens/' + id)
+            .then(r => {
+                if (!r.ok) throw new Error("Błąd backendu: " + r.status);
+                // Sprawdzamy czy serwer na pewno zwrócił JSON, a nie stronę HTML
+                const contentType = r.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new TypeError("Serwer nie zwrócił danych JSON! Sprawdź API.");
+                }
+                return r.json();
+            })
+            .then(g => {
+                currentGardenName = g.name;
+                const plantsArray = g.plants || [];
+
+                let plantsHtml = '';
+                if (plantsArray.length > 0) {
+                    plantsHtml = plantsArray.map(plantName => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; margin: 8px 0; border-radius: 4px; border-left: 4px solid #4CAF50; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <span>🌿 <b>${plantName}</b></span>
+                            <button onclick="removePlant('${plantName}')" style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">
+                                🗑 Usuń z ogrodu
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    plantsHtml = "<p style='color: gray; font-style: italic;'>W tym ogrodzie nie ma jeszcze żadnych roślin.</p>";
+                }
+
+                document.getElementById('garden').innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="margin: 0; color: #2e7d32;">🏡 Nazwa ogrodu: <span id="display-name">${g.name}</span></h2>
+                        <button onclick="editGardenName()" style="background: #0288d1; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                            ✏️ Edytuj nazwę
+                        </button>
+                    </div>
+                    <h3 style="margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">🌱 Rośliny rosnące w ogrodzie:</h3>
+                    ${plantsHtml}
+                `;
+            })
+            .catch(err => {
+                console.error("Szczegóły błędu loadGarden:", err);
+                document.getElementById('garden').innerHTML = `
+                    <div style="color: red; padding: 10px; border: 1px dashed red;">
+                        ❌ <b>Błąd edycji/ładowania ogrodu!</b><br>
+                        <i>Komunikat: ${err.message}</i>
+                    </div>`;
+            });
+    }
+
+    // 2. ZMIANA NAZWY OGRODU (PUT)
+    function editGardenName() {
+        const newName = prompt("Podaj nową nazwę ogrodu:", currentGardenName);
+        if (!newName || newName.trim() === "" || newName === currentGardenName) return;
+
+        fetch(window.location.origin + '/api/Gardens/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName.trim() })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error("Błąd aktualizacji nazwy.");
+            showNotification();
+            loadGarden();
+        })
+        .catch(err => alert(err.message));
+    }
+
+    // 3. POBIERANIE DOSTĘPNYCH ROŚLIN Z BAZY DANYCH
+    function loadPlants() {
+        fetch(window.location.origin + '/api/Plants')
+            .then(r => {
+                if (!r.ok) throw new Error("Błąd pobierania roślin: " + r.status);
+                return r.json();
+            })
+            .then(data => {
+                allPlants = data;
+                filterPlants();
+            })
+            .catch(err => {
+                console.error("Szczegóły błędu loadPlants:", err);
+                document.getElementById('plants-list').innerHTML = "<p style='color:red;'>❌ Nie udało się załadować bazy roślin</p>";
+            });
+    }
+
+    // 4. FILTROWANIE DOSTĘPNYCH ROŚLIN PO POLU GATUNEK (SPECIES)
+    function filterPlants() {
+        const selectedCategory = document.getElementById('categorySelect').value;
+
+        const filtered = allPlants.filter(p => {
+            if (selectedCategory === 'all') return true;
+            return p.species === selectedCategory;
+        });
+
+        if (filtered.length === 0) {
+            document.getElementById('plants-list').innerHTML = "<p style='color:gray;'>Brak roślin w tym gatunku.</p>";
+            return;
+        }
+
+        document.getElementById('plants-list').innerHTML = filtered.map(p => `
+            <div style="border: 1px solid #ccc; margin: 8px 0; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+                <div>
+                    <b>${p.name}</b> <span style="color:green; font-size:0.9em;">(Gatunek: ${p.species || 'Ogólny'})</span>
+                </div>
+                <button onclick="addToGarden('${p.id}')" style="background:#4CAF50; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">
+                    ➕ Dodaj do ogrodu
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 5. DODAWANIE ROŚLINY DO OGRODU (POST)
+    function addToGarden(plantId) {
+        fetch(window.location.origin + `/api/Gardens/${id}/plants/${plantId}`, { method: 'POST' })
+            .then(r => {
+                if(!r.ok) return r.text().then(text => { throw new Error(text) });
+                showNotification();
+                loadGarden();
+            })
+            .catch(err => alert(err.message));
+    }
+
+    // 6. USUWANIE ROŚLINY Z OGRODU (DELETE)
+    function removePlant(plantName) {
+        if (!confirm(`Czy chcesz usunąć roślinę "${plantName}" z tego ogrodu?`)) return;
+
+        const foundPlant = allPlants.find(p => p.name === plantName);
+        if (!foundPlant) {
+            alert("Nie można znaleźć identyfikatora rośliny.");
+            return;
+        }
+
+        fetch(window.location.origin + `/api/Gardens/${id}/plants/${foundPlant.id}`, { method: 'DELETE' })
+            .then(r => {
+                if (!r.ok) throw new Error("Nie udało się usunąć rośliny z ogrodu.");
+                showNotification();
+                loadGarden();
+            })
+            .catch(err => alert(err.message));
+    }
+
+    function showNotification() {
+        const msg = document.getElementById('successMessage');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 2500);
+    }
+
+    // Uruchomienie metod po wejściu na stronę
+    loadGarden();
+    loadPlants();
+</script>

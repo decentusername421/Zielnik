@@ -1,0 +1,146 @@
+﻿<h1>🌱 Zarządzanie Bazą Roślin</h1>
+
+<div id="successMessage" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold;">
+    ✅ Sukces! Roślina została pomyślnie dodana do bazy danych.
+</div>
+
+<div style="background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #c8e6c9; max-width: 500px;">
+    <h3 style="color: #2e7d32; margin-top: 0;">➕ Dodaj nową roślinę do bazy</h3>
+
+    <div style="margin-bottom: 10px;">
+        <label><b>Nazwa rośliny:</b></label><br>
+        <input type="text" id="plantName" placeholder="np. Pomidor Malinowy, Róża" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label><b>Wybierz gatunek (kategorię):</b></label><br>
+        <select id="plantSpecies" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="Warzywa">🥕 Warzywa</option>
+            <option value="Owoce">🍎 Owoce</option>
+            <option value="Kwiaty">🌸 Kwiaty</option>
+            <option value="Drzewa">🌳 Drzewa</option>
+        </select>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label><b>Częstotliwość podlewania (w dniach):</b></label><br>
+        <input type="number" id="plantWatering" value="2" min="1" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
+    </div>
+
+    <button onclick="createNewPlant()" style="background: #2e7d32; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">
+        💾 Zapisz roślinę w bazie
+    </button>
+</div>
+
+<hr>
+
+<h2>📋 Wszystkie rośliny w bazie</h2>
+<div id="list">Ładowanie listy roślin...</div>
+
+<script>
+    // Pobieranie wszystkich roślin z API i wyświetlanie ich na stronie
+    function loadPlants() {
+        fetch('/api/Plants')
+            .then(response => {
+                if (!response.ok) throw new Error("Błąd serwera: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if(data.length === 0) {
+                    document.getElementById('list').innerHTML = '<p style="color:gray;">Baza roślin jest pusta. Dodaj pierwszą roślinę powyżej!</p>';
+                    return;
+                }
+
+                // Mapowanie danych na elementy HTML - używamy bezpośrednio pola "species"
+                document.getElementById('list').innerHTML = data.map(p => `
+                    <div style="background: white; border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div>
+                            <h3 style="margin: 0 0 5px 0; color: #2e7d32;">🌱 ${p.name}</h3>
+                            <span style="background: #e0f2f1; color: #004d40; padding: 3px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold;">
+                                📂 Gatunek: ${p.species || 'Ogólny'}
+                            </span>
+                            <p style="margin: 8px 0 0 0; font-size: 0.9em; color: #555;">
+                                💧 Podlewanie co: <b>${p.wateringFrequencyDays} dni</b>
+                            </p>
+                        </div>
+                        <div>
+                            <button onclick="deletePlant('${p.id}')" style="background: #ff4d4d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                🗑 Usuń
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                document.getElementById('list').innerHTML = '<p style="color:red; font-weight:bold;">❌ Błąd pobierania danych.</p>';
+                console.error(error);
+            });
+    }
+
+    // Wysyłanie danych nowej rośliny do API (bazy danych)
+    function createNewPlant() {
+        const nameInput = document.getElementById('plantName').value.trim();
+        const speciesSelect = document.getElementById('plantSpecies').value;
+        const wateringInput = document.getElementById('plantWatering').value;
+
+        if (!nameInput) {
+            alert("Proszę podać nazwę rośliny!");
+            return;
+        }
+
+        // Tworzenie prostego obiektu dla backendu wykorzystując pole "species"
+        const newPlantData = {
+            name: nameInput,
+            species: speciesSelect,
+            wateringFrequencyDays: parseInt(wateringInput) || 2
+        };
+
+        fetch('/api/Plants', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newPlantData)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Nie udało się zapisać rośliny.");
+
+            // Czyszczenie pola tekstowego po sukcesie
+            document.getElementById('plantName').value = "";
+
+            // Pokazywanie prostego powiadomienia o sukcesie na 3 sekundy
+            const msgBlock = document.getElementById('successMessage');
+            msgBlock.style.display = 'block';
+            setTimeout(() => {
+                msgBlock.style.display = 'none';
+            }, 3000);
+
+            // Odświeżenie listy na stronie
+            loadPlants();
+        })
+        .catch(error => {
+            alert("Błąd podczas dodawania: " + error.message);
+            console.error(error);
+        });
+    }
+
+    // Usuwanie rośliny z bazy danych na podstawie jej identyfikatora ID
+    function deletePlant(plantId) {
+        if (!confirm("Czy na pewno chcesz usunąć tę roślinę z bazy danych?")) {
+            return;
+        }
+
+        fetch(`/api/Plants/${plantId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Nie udało się usunąć rośliny.");
+            loadPlants();
+        })
+        .catch(error => {
+            alert("Błąd podczas usuwania: " + error.message);
+            console.error(error);
+        });
+    }
+
+    // Wywołanie funkcji pobierającej dane przy uruchomieniu strony
+    loadPlants();
+</script>
