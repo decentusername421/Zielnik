@@ -20,7 +20,8 @@ namespace Zielnik.Controllers
         [HttpGet]
         public async Task<ActionResult<List<PlantDto>>> GetPlants()
         {
-          var plants = await _context.Plants
+            // Pobieranie wszystkich roślin wraz z ich relacjami
+            var plants = await _context.Plants
                 .Include(p => p.Gardens)
                 .Include(p => p.Categories)
                 .Select(p => new PlantDto
@@ -37,32 +38,19 @@ namespace Zielnik.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<PlantDto>> CreatePlant(CreatePlantDto dto)
+        public async Task<ActionResult<Plant>> CreatePlant(Plant plant)
         {
-            var plant = new Plant
-            {
-                Name = dto.Name,
-                Species = dto.Species,
-                WateringFrequencyDays = dto.WateringFrequencyDays
-            };
-
+            // Dodawanie nowej rośliny do bazy danych
             _context.Plants.Add(plant);
-
             await _context.SaveChangesAsync();
 
-            return Ok(new PlantDto
-            {
-                Id = plant.Id,
-                Name = plant.Name,
-                Species = plant.Species,
-                WateringFrequencyDays = plant.WateringFrequencyDays,
-                Categories = new List<string>()
-            });
+            return Ok(plant);
         }
 
         [HttpPost("{plantId}/categories/{categoryId}")]
         public async Task<IActionResult> AddCategoryToPlant(Guid plantId, Guid categoryId)
         {
+            // Przypisywanie kategorii do istniejącej rośliny
             var plant = await _context.Plants
                 .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == plantId);
@@ -85,56 +73,32 @@ namespace Zielnik.Controllers
             }
 
             plant.Categories.Add(category);
-
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<PlantDto>> UpdatePlant(
-    Guid id,
-    UpdatePlantDto dto)
+        // METOD USUNIĘCIA ROŚLINY (DODANY FIX)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePlant(Guid id)
         {
+            // Wyszukiwanie rośliny w bazie danych wraz z ogrodami, do których jest przypisana
             var plant = await _context.Plants
-                .Include(p => p.Categories)
+                .Include(p => p.Gardens)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (plant == null)
             {
-                return NotFound();
+                return NotFound("Nie znaleziono rośliny o podanym ID.");
             }
 
-            plant.Name = dto.Name;
-            plant.Species = dto.Species;
-            plant.WateringFrequencyDays = dto.WateringFrequencyDays;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new PlantDto
+            // Bezpieczne usuwanie powiązań z ogrodami przed usunięciem samej rośliny
+            if (plant.Gardens != null && plant.Gardens.Any())
             {
-                Id = plant.Id,
-                Name = plant.Name,
-                Species = plant.Species,
-                WateringFrequencyDays = plant.WateringFrequencyDays,
-                Categories = plant.Categories
-                    .Select(c => c.Name)
-                    .ToList()
-            });
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePlant(Guid id)
-        {
-            var plant = await _context.Plants.FindAsync(id);
-
-            if (plant == null)
-            {
-                return NotFound();
+                plant.Gardens.Clear();
             }
 
             _context.Plants.Remove(plant);
-
             await _context.SaveChangesAsync();
 
             return NoContent();
