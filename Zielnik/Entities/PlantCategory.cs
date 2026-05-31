@@ -2,7 +2,7 @@
 
 namespace Zielnik.Entities
 {
-    public class Garden
+    public class PlantCategory
     {
         public Guid Id { get; set; }
 
