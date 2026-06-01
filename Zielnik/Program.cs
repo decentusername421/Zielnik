@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
