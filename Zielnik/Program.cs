@@ -33,5 +33,13 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Gardens}/{action=Index}/{id?}");
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<ZielnikDbContext>();
+
+    SeedData.Initialize(context);
+}
+
 app.Run();
 

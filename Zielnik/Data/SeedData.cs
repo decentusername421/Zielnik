@@ -1,0 +1,834 @@
+﻿using Zielnik.Data;
+using Zielnik.Entities;
+
+public static class SeedData
+{
+    public static void Initialize(ZielnikDbContext context)
+    {
+        var categoryNames = new[]
+        {
+            "Warzywa",
+            "Pomidory",
+            "Ogórki",
+            "Papryki",
+
+            "Owoce",
+            "Drzewa",
+            "Krzewy",
+
+            "Zioła",
+
+            "Ozdobne",
+            "Byliny",
+            "Trawy",
+
+            "Jednoroczne",
+            "Wieloletnie",
+            "Dwuletnie",
+
+            "Cebulkowe",
+            "Pnącza"
+        };
+
+        foreach (var categoryName in categoryNames)
+        {
+            if (!context.PlantCategories.Any(c => c.Name == categoryName))
+            {
+                context.PlantCategories.Add(new PlantCategory
+                {
+                    Name = categoryName
+                });
+            }
+        }
+
+       
+        var vegetables = context.PlantCategories.First(c => c.Name == "Warzywa");
+        var tomatoes = context.PlantCategories.First(c => c.Name == "Pomidory");
+        var cucumbers = context.PlantCategories.First(c => c.Name == "Ogórki");
+        var peppers = context.PlantCategories.First(c => c.Name == "Papryki");
+
+        var fruits = context.PlantCategories.First(c => c.Name == "Owoce");
+        var trees = context.PlantCategories.First(c => c.Name == "Drzewa");
+        var shrubs = context.PlantCategories.First(c => c.Name == "Krzewy");
+
+        var annuals = context.PlantCategories.First(c => c.Name == "Jednoroczne");
+        var biennial = context.PlantCategories.First(c => c.Name == "Dwuletnie");
+        var longLived = context.PlantCategories.First(c => c.Name == "Wieloletnie");
+        var perennials = context.PlantCategories.First(c => c.Name == "Byliny");
+        var bulbs = context.PlantCategories.First(c => c.Name == "Cebulkowe");
+
+        var herbs = context.PlantCategories.First(c => c.Name == "Zioła");
+        var ornamental = context.PlantCategories.First(c => c.Name == "Ozdobne");
+        var grasses = context.PlantCategories.First(c => c.Name == "Trawy");
+        var climbers = context.PlantCategories.First(c => c.Name == "Pnącza");
+
+
+        // Black Cherry
+        if (!context.Plants.Any(p => p.Name == "Black Cherry"))
+        {
+            var plant = new Plant
+            {
+                Name = "Black Cherry",
+                Species = "Solanum lycopersicum",
+                WateringFrequencyDays = 2,
+                Description = "Pomidor koktajlowy o ciemnych, słodkich owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(tomatoes);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Malinowy Warszawski
+        if (!context.Plants.Any(p => p.Name == "Malinowy Warszawski"))
+        {
+            var plant = new Plant
+            {
+                Name = "Malinowy Warszawski",
+                Species = "Solanum lycopersicum",
+                WateringFrequencyDays = 2,
+                Description = "Polska odmiana o dużych malinowych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(tomatoes);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Bawole Serce
+        if (!context.Plants.Any(p => p.Name == "Bawole Serce"))
+        {
+            var plant = new Plant
+            {
+                Name = "Bawole Serce",
+                Species = "Solanum lycopersicum",
+                WateringFrequencyDays = 2,
+                Description = "Mięsiste owoce idealne do sałatek.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(tomatoes);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // San Marzano
+        if (!context.Plants.Any(p => p.Name == "San Marzano"))
+        {
+            var plant = new Plant
+            {
+                Name = "San Marzano",
+                Species = "Solanum lycopersicum",
+                WateringFrequencyDays = 2,
+                Description = "Włoska odmiana polecana do sosów i przetworów.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(tomatoes);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Ogórek Śremski
+        if (!context.Plants.Any(p => p.Name == "Ogórek Śremski"))
+        {
+            var plant = new Plant
+            {
+                Name = "Ogórek Śremski",
+                Species = "Cucumis sativus",
+                WateringFrequencyDays = 1,
+                Description = "Popularna polska odmiana gruntowa.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(cucumbers);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Julian F1
+        if (!context.Plants.Any(p => p.Name == "Julian F1"))
+        {
+            var plant = new Plant
+            {
+                Name = "Julian F1",
+                Species = "Cucumis sativus",
+                WateringFrequencyDays = 1,
+                Description = "Plenna odmiana ogórka do uprawy gruntowej.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(cucumbers);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // California Wonder
+        if (!context.Plants.Any(p => p.Name == "California Wonder"))
+        {
+            var plant = new Plant
+            {
+                Name = "California Wonder",
+                Species = "Capsicum annuum",
+                WateringFrequencyDays = 3,
+                Description = "Klasyczna odmiana papryki słodkiej.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(peppers);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Marta Polka
+        if (!context.Plants.Any(p => p.Name == "Marta Polka"))
+        {
+            var plant = new Plant
+            {
+                Name = "Marta Polka",
+                Species = "Capsicum annuum",
+                WateringFrequencyDays = 3,
+                Description = "Polska odmiana papryki o czerwonych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(vegetables);
+            plant.Categories.Add(peppers);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+        // Ligol
+        if (!context.Plants.Any(p => p.Name == "Ligol"))
+        {
+            var plant = new Plant
+            {
+                Name = "Ligol",
+                Species = "Malus domestica",
+                WateringFrequencyDays = 7,
+                Description = "Popularna polska odmiana jabłoni o dużych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(trees);
+            plant.Categories.Add(longLived);
+            
+
+            context.Plants.Add(plant);
+        }
+
+        // Szampion
+        if (!context.Plants.Any(p => p.Name == "Szampion"))
+        {
+            var plant = new Plant
+            {
+                Name = "Szampion",
+                Species = "Malus domestica",
+                WateringFrequencyDays = 7,
+                Description = "Deserowa odmiana jabłoni o słodkich owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(trees);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Antonówka Zwykła
+        if (!context.Plants.Any(p => p.Name == "Antonówka Zwykła"))
+        {
+            var plant = new Plant
+            {
+                Name = "Antonówka Zwykła",
+                Species = "Malus domestica",
+                WateringFrequencyDays = 7,
+                Description = "Klasyczna odmiana idealna na przetwory.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(trees);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Łutówka
+        if (!context.Plants.Any(p => p.Name == "Łutówka"))
+        {
+            var plant = new Plant
+            {
+                Name = "Łutówka",
+                Species = "Prunus cerasus",
+                WateringFrequencyDays = 7,
+                Description = "Najpopularniejsza odmiana wiśni w Polsce.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(trees);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Northstar
+        if (!context.Plants.Any(p => p.Name == "Northstar"))
+        {
+            var plant = new Plant
+            {
+                Name = "Northstar",
+                Species = "Prunus cerasus",
+                WateringFrequencyDays = 7,
+                Description = "Mrozoodporna odmiana wiśni o ciemnych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(trees);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Polka
+        if (!context.Plants.Any(p => p.Name == "Polka"))
+        {
+            var plant = new Plant
+            {
+                Name = "Polka",
+                Species = "Rubus idaeus",
+                WateringFrequencyDays = 3,
+                Description = "Popularna odmiana maliny jesiennej.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(shrubs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Laszka
+        if (!context.Plants.Any(p => p.Name == "Laszka"))
+        {
+            var plant = new Plant
+            {
+                Name = "Laszka",
+                Species = "Rubus idaeus",
+                WateringFrequencyDays = 3,
+                Description = "Wczesna odmiana malin o dużych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(shrubs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Bluecrop
+        if (!context.Plants.Any(p => p.Name == "Bluecrop"))
+        {
+            var plant = new Plant
+            {
+                Name = "Bluecrop",
+                Species = "Vaccinium corymbosum",
+                WateringFrequencyDays = 3,
+                Description = "Jedna z najpopularniejszych odmian borówki amerykańskiej.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(shrubs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Chandler
+        if (!context.Plants.Any(p => p.Name == "Chandler"))
+        {
+            var plant = new Plant
+            {
+                Name = "Chandler",
+                Species = "Vaccinium corymbosum",
+                WateringFrequencyDays = 3,
+                Description = "Borówka o bardzo dużych owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(shrubs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Bazylia Genovese
+        if (!context.Plants.Any(p => p.Name == "Bazylia Genovese"))
+        {
+            var plant = new Plant
+            {
+                Name = "Bazylia Genovese",
+                Species = "Ocimum basilicum",
+                WateringFrequencyDays = 2,
+                Description = "Klasyczna bazylia włoska.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(herbs);
+            plant.Categories.Add(annuals);
+
+            context.Plants.Add(plant);
+        }
+
+        // Mięta pieprzowa
+        if (!context.Plants.Any(p => p.Name == "Mięta pieprzowa"))
+        {
+            var plant = new Plant
+            {
+                Name = "Mięta pieprzowa",
+                Species = "Mentha × piperita",
+                WateringFrequencyDays = 3,
+                Description = "Aromatyczna bylina zielarska.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(herbs);
+            plant.Categories.Add(perennials);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Rozmaryn lekarski
+        if (!context.Plants.Any(p => p.Name == "Rozmaryn lekarski"))
+        {
+            var plant = new Plant
+            {
+                Name = "Rozmaryn lekarski",
+                Species = "Salvia rosmarinus",
+                WateringFrequencyDays = 4,
+                Description = "Zioło śródziemnomorskie.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(herbs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Tymianek pospolity
+        if (!context.Plants.Any(p => p.Name == "Tymianek pospolity"))
+        {
+            var plant = new Plant
+            {
+                Name = "Tymianek pospolity",
+                Species = "Thymus vulgaris",
+                WateringFrequencyDays = 4,
+                Description = "Niskie zioło o intensywnym aromacie.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(herbs);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Lawenda Hidcote Blue
+        if (!context.Plants.Any(p => p.Name == "Lawenda Hidcote Blue"))
+        {
+            var plant = new Plant
+            {
+                Name = "Lawenda Hidcote Blue",
+                Species = "Lavandula angustifolia",
+                WateringFrequencyDays = 5,
+                Description = "Popularna lawenda o fioletowych kwiatach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(perennials);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Jeżówka purpurowa Magnus
+        if (!context.Plants.Any(p => p.Name == "Jeżówka Magnus"))
+        {
+            var plant = new Plant
+            {
+                Name = "Jeżówka Magnus",
+                Species = "Echinacea purpurea",
+                WateringFrequencyDays = 4,
+                Description = "Długo kwitnąca bylina miododajna.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(perennials);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Funkia Patriot
+        if (!context.Plants.Any(p => p.Name == "Funkia Patriot"))
+        {
+            var plant = new Plant
+            {
+                Name = "Funkia Patriot",
+                Species = "Hosta hybrid",
+                WateringFrequencyDays = 3,
+                Description = "Popularna bylina do półcienia.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(perennials);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Miskant Gracillimus
+        if (!context.Plants.Any(p => p.Name == "Miskant Gracillimus"))
+        {
+            var plant = new Plant
+            {
+                Name = "Miskant Gracillimus",
+                Species = "Miscanthus sinensis",
+                WateringFrequencyDays = 5,
+                Description = "Wysoka trawa ozdobna o przewieszających się liściach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(grasses);
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Rozplenica Hameln
+        if (!context.Plants.Any(p => p.Name == "Rozplenica Hameln"))
+        {
+            var plant = new Plant
+            {
+                Name = "Rozplenica Hameln",
+                Species = "Pennisetum alopecuroides",
+                WateringFrequencyDays = 4,
+                Description = "Zwarta trawa ozdobna z puszystymi kwiatostanami.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(grasses);
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Tulipan Queen of Night
+        if (!context.Plants.Any(p => p.Name == "Tulipan Queen of Night"))
+        {
+            var plant = new Plant
+            {
+                Name = "Tulipan Queen of Night",
+                Species = "Tulipa",
+                WateringFrequencyDays = 7,
+                Description = "Tulipan o bardzo ciemnych kwiatach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(bulbs);
+            plant.Categories.Add(ornamental);
+
+            context.Plants.Add(plant);
+        }
+
+        // Narcyz Ice Follies
+        if (!context.Plants.Any(p => p.Name == "Narcyz Ice Follies"))
+        {
+            var plant = new Plant
+            {
+                Name = "Narcyz Ice Follies",
+                Species = "Narcissus",
+                WateringFrequencyDays = 7,
+                Description = "Popularny biało-kremowy narcyz.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(bulbs);
+            plant.Categories.Add(ornamental);
+
+            context.Plants.Add(plant);
+        }
+
+        // Hiacynt Delft Blue
+        if (!context.Plants.Any(p => p.Name == "Hiacynt Delft Blue"))
+        {
+            var plant = new Plant
+            {
+                Name = "Hiacynt Delft Blue",
+                Species = "Hyacinthus orientalis",
+                WateringFrequencyDays = 7,
+                Description = "Niebieski hiacynt o intensywnym zapachu.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(bulbs);
+            plant.Categories.Add(ornamental);
+
+            context.Plants.Add(plant);
+        }
+
+        // Winorośl Regent
+        if (!context.Plants.Any(p => p.Name == "Regent"))
+        {
+            var plant = new Plant
+            {
+                Name = "Regent",
+                Species = "Vitis vinifera",
+                WateringFrequencyDays = 5,
+                Description = "Popularna odmiana winorośli odporna na choroby.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(climbers);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Winorośl Solaris
+        if (!context.Plants.Any(p => p.Name == "Solaris"))
+        {
+            var plant = new Plant
+            {
+                Name = "Solaris",
+                Species = "Vitis vinifera",
+                WateringFrequencyDays = 5,
+                Description = "Wczesna odmiana winorośli o słodkich owocach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(fruits);
+            plant.Categories.Add(climbers);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Powojnik Jackmanii
+        if (!context.Plants.Any(p => p.Name == "Jackmanii"))
+        {
+            var plant = new Plant
+            {
+                Name = "Jackmanii",
+                Species = "Clematis × jackmanii",
+                WateringFrequencyDays = 4,
+                Description = "Klasyczny powojnik o dużych fioletowych kwiatach.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(climbers);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Wiciokrzew pomorski
+        if (!context.Plants.Any(p => p.Name == "Wiciokrzew pomorski"))
+        {
+            var plant = new Plant
+            {
+                Name = "Wiciokrzew pomorski",
+                Species = "Lonicera periclymenum",
+                WateringFrequencyDays = 4,
+                Description = "Silnie pachnące pnącze ozdobne.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(climbers);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+        // Bluszcz pospolity
+        if (!context.Plants.Any(p => p.Name == "Bluszcz pospolity"))
+        {
+            var plant = new Plant
+            {
+                Name = "Bluszcz pospolity",
+                Species = "Hedera helix",
+                WateringFrequencyDays = 7,
+                Description = "Zimozielone pnącze okrywowe i ścienne.",
+                IsCustomPlant = false
+            };
+
+            plant.Categories.Add(ornamental);
+            plant.Categories.Add(climbers);
+            plant.Categories.Add(longLived);
+
+            context.Plants.Add(plant);
+        }
+
+
+        // Gardens
+
+        var homeGarden = context.Gardens.FirstOrDefault(g => g.Name == "Ogród przydomowy");
+        if (homeGarden == null)
+        {
+            homeGarden = new Garden
+            {
+                Name = "Ogród przydomowy"
+            };
+
+            context.Gardens.Add(homeGarden);
+        }
+
+        var tunnel = context.Gardens.FirstOrDefault(g => g.Name == "Tunel foliowy");
+        if (tunnel == null)
+        {
+            tunnel = new Garden
+            {
+                Name = "Tunel foliowy"
+            };
+
+            context.Gardens.Add(tunnel);
+        }
+
+        var balcony = context.Gardens.FirstOrDefault(g => g.Name == "Balkon");
+        if (balcony == null)
+        {
+            balcony = new Garden
+            {
+                Name = "Balkon"
+            };
+
+            context.Gardens.Add(balcony);
+        }
+
+        var pergola = context.Gardens.FirstOrDefault(g => g.Name == "Pergola");
+        if (pergola == null)
+        {
+            pergola = new Garden
+            {
+                Name = "Pergola"
+            };
+
+            context.Gardens.Add(pergola);
+        }
+
+       
+        var blackCherry = context.Plants.First(p => p.Name == "Black Cherry");
+        var malinowy = context.Plants.First(p => p.Name == "Malinowy Warszawski");
+        var lawenda = context.Plants.First(p => p.Name == "Lawenda Hidcote Blue");
+        var regent = context.Plants.First(p => p.Name == "Regent");
+        if (!context.UserPlants.Any(up => up.Nickname == "Tunel 2025"))
+        {
+            context.UserPlants.Add(new UserPlant
+            {
+                PlantId = blackCherry.Id,
+                GardenId = tunnel.Id,
+
+                Nickname = "Tunel 2025",
+
+                SowingDate = new DateTime(2025, 3, 15, 0, 0, 0, DateTimeKind.Utc),
+                PlantingDate = new DateTime(2025, 5, 1, 0, 0, 0, DateTimeKind.Utc),
+
+                Status = PlantStatus.Harvested
+            });
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Grządka południowa"))
+        {
+            context.UserPlants.Add(new UserPlant
+            {
+                PlantId = blackCherry.Id,
+                GardenId = homeGarden.Id,
+
+                Nickname = "Grządka południowa",
+
+                SowingDate = new DateTime(2025, 4, 1),
+                PlantingDate = new DateTime(2025, 5, 20),
+
+                Status = PlantStatus.Active
+            });
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Eksperyment"))
+        {
+            context.UserPlants.Add(new UserPlant
+            {
+                PlantId = malinowy.Id,
+                GardenId = tunnel.Id,
+
+                Nickname = "Eksperyment",
+
+                SowingDate = new DateTime(2025, 3, 10),
+                PlantingDate = new DateTime(2025, 5, 2),
+
+                Status = PlantStatus.Dead
+            });
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Rabata przy wejściu"))
+        {
+            context.UserPlants.Add(new UserPlant
+            {
+                PlantId = lawenda.Id,
+                GardenId = homeGarden.Id,
+
+                Nickname = "Rabata przy wejściu",
+
+                Status = PlantStatus.Active
+            });
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Pergola południowa"))
+        {
+            context.UserPlants.Add(new UserPlant
+            {
+                PlantId = regent.Id,
+                GardenId = pergola.Id,
+
+                Nickname = "Pergola południowa",
+
+                Status = PlantStatus.Active
+            });
+        }
+
+        context.SaveChanges();
+    }
+}

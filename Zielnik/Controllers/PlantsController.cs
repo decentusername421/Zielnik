@@ -20,19 +20,17 @@ namespace Zielnik.Controllers
         [HttpGet]
         public async Task<ActionResult<List<PlantDto>>> GetPlants()
         {
-            // Pobieranie wszystkich roślin wraz z ich relacjami
             var plants = await _context.Plants
-                .Include(p => p.Gardens)
-                .Include(p => p.Categories)
-                .Select(p => new PlantDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Species = p.Species,
-                    WateringFrequencyDays = p.WateringFrequencyDays,
-                    Categories = p.Categories.Select(c => c.Name).ToList()
-                })
-                .ToListAsync();
+    .Include(p => p.Categories)
+    .Select(p => new PlantDto
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Species = p.Species,
+        WateringFrequencyDays = p.WateringFrequencyDays,
+        Categories = p.Categories.Select(c => c.Name).ToList()
+    })
+    .ToListAsync();
 
             return Ok(plants);
         }
@@ -84,19 +82,13 @@ namespace Zielnik.Controllers
         {
             // Wyszukiwanie rośliny w bazie danych wraz z ogrodami, do których jest przypisana
             var plant = await _context.Plants
-                .Include(p => p.Gardens)
-                .FirstOrDefaultAsync(p => p.Id == id);
+    .FirstOrDefaultAsync(p => p.Id == id);
 
             if (plant == null)
             {
                 return NotFound("Nie znaleziono rośliny o podanym ID.");
             }
 
-            // Bezpieczne usuwanie powiązań z ogrodami przed usunięciem samej rośliny
-            if (plant.Gardens != null && plant.Gardens.Any())
-            {
-                plant.Gardens.Clear();
-            }
 
             _context.Plants.Remove(plant);
             await _context.SaveChangesAsync();

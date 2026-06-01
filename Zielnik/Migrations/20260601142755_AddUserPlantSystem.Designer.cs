@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zielnik.Data;
@@ -11,9 +12,11 @@ using Zielnik.Data;
 namespace Zielnik.Migrations
 {
     [DbContext(typeof(ZielnikDbContext))]
-    partial class ZielnikDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601142755_AddUserPlantSystem")]
+    partial class AddUserPlantSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,10 +239,10 @@ namespace Zielnik.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("PlantingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("SowingDate")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
