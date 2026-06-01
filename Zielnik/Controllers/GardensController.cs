@@ -18,8 +18,9 @@ namespace Zielnik.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Garden>> GetGarden(Guid id)
+        public async Task<ActionResult<GardenDto>> GetGarden(Guid id)
         {
+            // Pobieranie szczegółów jednego ogrodu wraz z roślinami
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
                 .FirstOrDefaultAsync(g => g.Id == id);
@@ -29,59 +30,53 @@ namespace Zielnik.Controllers
                 return NotFound();
             }
 
-            return Ok(garden);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<GardenDto>> CreateGarden(CreateGardenDto dto)
-        {
-            var garden = new Garden
-            {
-                Name = dto.Name
-            };
-
-            _context.Gardens.Add(garden);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new GardenDto
-            {
-                Id = garden.Id,
-                Name = garden.Name,
-                Plants = new List<string>()
-            });
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<GardenDto>> UpdateGarden(
-    Guid id,
-    UpdateGardenDto dto)
-        {
-            var garden = await _context.Gardens
-    .Include(g => g.Plants)
-    .FirstOrDefaultAsync(g => g.Id == id);
-
-            if (garden == null)
-            {
-                return NotFound();
-            }
-
-            garden.Name = dto.Name;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new GardenDto
+            // Mapowanie na bezpieczny format GardenDto
+            var gardenDto = new GardenDto
             {
                 Id = garden.Id,
                 Name = garden.Name,
                 Plants = garden.Plants.Select(p => p.Name).ToList()
-            });
+            };
+
+            return Ok(gardenDto);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Garden>> CreateGarden(Garden garden)
+        {
+            // Tworzenie nowego ogrodu w bazie danych
+            _context.Gardens.Add(garden);
+            await _context.SaveChangesAsync();
+            return Ok(garden);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Garden>> UpdateGarden(Guid id, [FromBody] GardenUpdateDto updatedData)
+        {
+            // Aktualizacja nazwy ogrodu za pomocą obiektu DTO
+            var garden = await _context.Gardens
+                .Include(g => g.Plants)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (garden == null)
+            {
+                return NotFound("Nie znaleziono ogrodu.");
+            }
+
+            // Przypisanie nowej nazwy wpisanej przez użytkownika
+            garden.Name = updatedData.Name;
+
+            await _context.SaveChangesAsync();
+            return Ok(garden);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGarden(Guid id)
         {
-            var garden = await _context.Gardens.FindAsync(id);
+            // Usuwanie ogrodu z bazy danych
+            var garden = await _context.Gardens
+                .Include(g => g.Plants)
+                .FirstOrDefaultAsync(g => g.Id == id);
 
             if (garden == null)
             {
@@ -89,50 +84,31 @@ namespace Zielnik.Controllers
             }
 
             _context.Gardens.Remove(garden);
-
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<GardenDto>>> GetGardens()
+        {
+            // Pobieranie listy wszystkich ogrodów dla strony głównej
+            var gardens = await _context.Gardens
+                .Include(g => g.Plants)
+                .Select(g => new GardenDto
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Plants = g.Plants.Select(p => p.Name).ToList()
+                })
+                .ToListAsync();
 
+            return Ok(gardens);
+        }
 
         [HttpPost("{gardenId}/plants/{plantId}")]
         public async Task<IActionResult> AddPlantToGarden(Guid gardenId, Guid plantId)
         {
-            var garden = await _context.Gardens
-                .Include(g => g.Plants)//ogrod razem z roslinami
-                .FirstOrDefaultAsync(g => g.Id == gardenId);
-
-            if (garden == null)
-            {
-                return NotFound("Garden not found.");
-            }
-
-            var plant = await _context.Plants.FindAsync(plantId);//pobiera sama rosline
-
-            if (plant == null)
-            {
-                return NotFound("Plant not found.");
-            }
-
-            if (garden.Plants.Any(p => p.Id == plantId))//czy sa duplikaty?
-            {
-                return BadRequest("Plant already assigned to garden.");
-            }
-
-            garden.Plants.Add(plant);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpDelete("{gardenId}/plants/{plantId}")]
-        public async Task<IActionResult> RemovePlantFromGarden(
-    Guid gardenId,
-    Guid plantId)
-        {
+            // Przypisywanie (sadzenie) rośliny w wybranym ogrodzie
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
                 .FirstOrDefaultAsync(g => g.Id == gardenId);
@@ -142,18 +118,41 @@ namespace Zielnik.Controllers
                 return NotFound("Garden not found.");
             }
 
-            var plant = garden.Plants
-                .FirstOrDefault(p => p.Id == plantId);
+            var plant = await _context.Plants.FindAsync(plantId);
 
             if (plant == null)
             {
-                return NotFound("Plant not assigned to garden.");
+                return NotFound("Plant not found.");
             }
 
-            garden.Plants.Remove(plant);
+            if (garden.Plants.Any(p => p.Id == plantId))
+            {
+                return BadRequest("Plant already assigned to garden.");
+            }
 
+            garden.Plants.Add(plant);
             await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
+        [HttpDelete("{gardenId}/plants/{plantId}")]
+        public async Task<IActionResult> RemovePlantFromGarden(Guid gardenId, Guid plantId)
+        {
+            // Usuwanie konkretnej rośliny z wybranego ogrodu
+            var garden = await _context.Gardens
+                .Include(g => g.Plants)
+                .FirstOrDefaultAsync(g => g.Id == gardenId);
+
+            if (garden == null)
+                return NotFound("Garden not found.");
+
+            var plant = garden.Plants.FirstOrDefault(p => p.Id == plantId);
+
+            if (plant == null)
+                return NotFound("Plant not found in garden.");
+
+            garden.Plants.Remove(plant);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
     }
