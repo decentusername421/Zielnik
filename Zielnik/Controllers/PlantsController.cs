@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
 using Zielnik.DTOs;
 using Zielnik.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Zielnik.Controllers
 {
