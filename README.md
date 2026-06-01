@@ -1,80 +1,55 @@
-Podział pracy na 3 osoby
+# 🌿 Zielnik – aplikacja do zarządzania ogrodem
 
+## 📌 Opis projektu
+Zielnik to aplikacja webowa umożliwiająca zarządzanie roślinami, ogrodami oraz kategoriami roślin. Użytkownik może tworzyć ogrody, dodawać rośliny oraz przypisywać je do kategorii i lokalizacji.
 
-Osoba 1 — Backend i baza danych
+Projekt został wykonany w technologii **ASP.NET Core Web API** z wykorzystaniem **Entity Framework Core** oraz bazy danych **PostgreSQL**. W projekcie zastosowano również system użytkowników oparty o **ASP.NET Identity**.
 
-Zakres prac
-konfiguracja projektu ASP.NET Core,
-konfiguracja bazy danych,
-stworzenie modeli ORM,
-migracje,
-relacje między modelami,
-walidatory modeli,
-przygotowanie REST API,
-filtrowanie i sortowanie danych,
-zabezpieczenie endpointów.
+---
 
-Najważniejsza logika backendowa oraz poprawne działanie bazy danych.
+## ⚙️ Technologie
+- ASP.NET Core Web API
+- Entity Framework Core
+- PostgreSQL (Npgsql)
+- ASP.NET Identity
+- Swagger / OpenAPI
 
-Główne pliki
-Models/
-Controllers/
-DTOs/
-Services/
-Repositories/
-Data/ApplicationDbContext.cs
-Program.cs
+---
 
+## 🔐 Użytkownicy
+Aplikacja posiada system rejestracji i logowania użytkowników:
+- rejestracja konta
+- logowanie
+- autoryzacja endpointów
 
-Osoba 2 — Frontend i interfejs użytkownika
+---
 
-Zakres prac
-stworzenie widoków aplikacji,
-formularze dodawania i edycji,
-dashboard użytkownika,
-lista ogrodów,
-lista roślin,
-lista zadań,
-obsługa komunikacji z API,
-responsywny wygląd aplikacji,
-obsługa błędów formularzy.
+## 🌱 Funkcjonalności
 
-Cały interfejs użytkownika i UX.
+### Rośliny
+- dodawanie roślin
+- usuwanie roślin
+- przypisywanie kategorii
+- pobieranie listy roślin
 
-Widoki
-logowanie/rejestracja,
-panel główny,
-szczegóły ogrodu,
-szczegóły rośliny,
-harmonogram zadań.
+### Ogrody
+- tworzenie ogrodów
+- edycja ogrodów
+- przypisywanie roślin do ogrodów
+- usuwanie roślin z ogrodów
 
+### Kategorie
+- tworzenie kategorii roślin
+- przypisywanie kategorii do roślin
 
+---
 
-Osoba 3 — System użytkowników, powiadomienia i testy
+## 🗄️ Baza danych
+Projekt korzysta z PostgreSQL oraz Entity Framework Core (ORM).  
+Dane inicjalne są dodawane przy starcie aplikacji (SeedData).
 
-Zakres prac
-autoryzacja i role użytkowników,
-zabezpieczenia dostępu,
-system przypomnień,
-zadania „na dziś”,
-opcjonalne powiadomienia email,
-testowanie aplikacji,
-przygotowanie seed danych,
-dokumentacja projektu,
-README,
-upewnienie się, że aplikacja się uruchomi.
+---
 
-Bezpieczeństwo, stabilność projektu i finalne dopracowanie.
-
-Wspólne zasady pracy
-Git
-każdy pracuje na osobnym branchu,
-pull requesty do main,
-częste commity,
-sensowne nazwy commitów.
-
-Proponowana struktura branchy
-main
-backend
-frontend
-auth-notifications
+## 🚀 Uruchomienie
+1. Ustaw connection string w `appsettings.json`
+2. Uruchom migracje:
