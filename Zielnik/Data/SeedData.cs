@@ -6,29 +6,30 @@ namespace Zielnik.Data
     {
         public static void Seed(ZielnikDbContext context)
         {
-            if (context.PlantCategories.Any()) return;
+            if (context.PlantCategories.Any())
+                return;
 
-            var categoryNames = new[]
+            var categories = new List<PlantCategory>
             {
-                "Warzywa", "Owoce", "Kwiaty", "Drzewa",
-                "Pomidory", "Ogórki", "Papryki",
-                "Krzewy", "Zioła", "Ozdobne",
-                "Byliny", "Trawy", "Jednoroczne",
-                "Wieloletnie", "Dwuletnie",
-                "Cebulkowe", "Pnącza"
+                new() { Name = "Warzywa" },
+                new() { Name = "Pomidory" },
+                new() { Name = "Ogórki" },
+                new() { Name = "Papryki" },
+                new() { Name = "Owoce" },
+                new() { Name = "Drzewa" },
+                new() { Name = "Krzewy" },
+                new() { Name = "Zioła" },
+                new() { Name = "Ozdobne" },
+                new() { Name = "Byliny" },
+                new() { Name = "Trawy" },
+                new() { Name = "Jednoroczne" },
+                new() { Name = "Wieloletnie" },
+                new() { Name = "Dwuletnie" },
+                new() { Name = "Cebulkowe" },
+                new() { Name = "Pnącza" }
             };
 
-            foreach (var name in categoryNames)
-            {
-                if (!context.PlantCategories.Any(c => c.Name == name))
-                {
-                    context.PlantCategories.Add(new PlantCategory
-                    {
-                        Name = name
-                    });
-                }
-            }
-
+            context.PlantCategories.AddRange(categories);
             context.SaveChanges();
         }
     }
