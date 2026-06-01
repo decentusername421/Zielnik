@@ -9,6 +9,7 @@ namespace Zielnik.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // zabezpieczenie całego controller-a
     public class PlantsController : ControllerBase
     {
         private readonly ZielnikDbContext _context;
@@ -18,12 +19,13 @@ namespace Zielnik.Controllers
             _context = context;
         }
 
+       
+        // GET ALL PLANTS
+       
         [HttpGet]
         public async Task<ActionResult<List<PlantDto>>> GetPlants()
         {
-            // Pobieranie wszystkich roślin wraz z ich relacjami
             var plants = await _context.Plants
-                .Include(p => p.Gardens)
                 .Include(p => p.Categories)
                 .Select(p => new PlantDto
                 {
@@ -38,40 +40,45 @@ namespace Zielnik.Controllers
             return Ok(plants);
         }
 
+      
+        // CREATE PLANT (DTO)
+       
         [HttpPost]
-        public async Task<ActionResult<Plant>> CreatePlant(Plant plant)
+        public async Task<ActionResult> CreatePlant([FromBody] PlantDto dto)
         {
-            // Dodawanie nowej rośliny do bazy danych
+            var plant = new Plant
+            {
+                Name = dto.Name,
+                Species = dto.Species,
+                WateringFrequencyDays = dto.WateringFrequencyDays
+            };
+
             _context.Plants.Add(plant);
             await _context.SaveChangesAsync();
 
             return Ok(plant);
         }
 
+       
+        // ADD CATEGORY TO PLANT
+ 
         [HttpPost("{plantId}/categories/{categoryId}")]
         public async Task<IActionResult> AddCategoryToPlant(Guid plantId, Guid categoryId)
         {
-            // Przypisywanie kategorii do istniejącej rośliny
             var plant = await _context.Plants
                 .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.Id == plantId);
 
             if (plant == null)
-            {
-                return NotFound("Plant not found.");
-            }
+                return NotFound("Plant not found");
 
             var category = await _context.PlantCategories.FindAsync(categoryId);
 
             if (category == null)
-            {
-                return NotFound("Category not found.");
-            }
+                return NotFound("Category not found");
 
             if (plant.Categories.Any(c => c.Id == categoryId))
-            {
-                return BadRequest("Category already assigned to plant.");
-            }
+                return BadRequest("Category already assigned");
 
             plant.Categories.Add(category);
             await _context.SaveChangesAsync();
@@ -79,25 +86,22 @@ namespace Zielnik.Controllers
             return NoContent();
         }
 
-        // METOD USUNIĘCIA ROŚLINY (DODANY FIX)
+      
+        // DELETE PLANT
+       
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePlant(Guid id)
         {
-            // Wyszukiwanie rośliny w bazie danych wraz z ogrodami, do których jest przypisana
             var plant = await _context.Plants
+                .Include(p => p.Categories)
                 .Include(p => p.Gardens)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (plant == null)
-            {
-                return NotFound("Nie znaleziono rośliny o podanym ID.");
-            }
+                return NotFound("Plant not found");
 
-            // Bezpieczne usuwanie powiązań z ogrodami przed usunięciem samej rośliny
-            if (plant.Gardens != null && plant.Gardens.Any())
-            {
-                plant.Gardens.Clear();
-            }
+            plant.Categories.Clear();
+            plant.Gardens.Clear();
 
             _context.Plants.Remove(plant);
             await _context.SaveChangesAsync();
