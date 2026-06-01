@@ -9,7 +9,7 @@ namespace Zielnik.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // zabezpieczenie całego controller-a
+    [Authorize]
     public class PlantsController : ControllerBase
     {
         private readonly ZielnikDbContext _context;
@@ -19,9 +19,7 @@ namespace Zielnik.Controllers
             _context = context;
         }
 
-       
         // GET ALL PLANTS
-       
         [HttpGet]
         public async Task<ActionResult<List<PlantDto>>> GetPlants()
         {
@@ -40,9 +38,7 @@ namespace Zielnik.Controllers
             return Ok(plants);
         }
 
-      
         // CREATE PLANT (DTO)
-       
         [HttpPost]
         public async Task<ActionResult> CreatePlant([FromBody] PlantDto dto)
         {
@@ -59,9 +55,7 @@ namespace Zielnik.Controllers
             return Ok(plant);
         }
 
-       
         // ADD CATEGORY TO PLANT
- 
         [HttpPost("{plantId}/categories/{categoryId}")]
         public async Task<IActionResult> AddCategoryToPlant(Guid plantId, Guid categoryId)
         {
@@ -86,9 +80,7 @@ namespace Zielnik.Controllers
             return NoContent();
         }
 
-      
         // DELETE PLANT
-       
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePlant(Guid id)
         {
