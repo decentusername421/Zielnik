@@ -49,7 +49,3 @@ Projekt korzysta z PostgreSQL oraz Entity Framework Core (ORM).
 Dane inicjalne są dodawane przy starcie aplikacji (SeedData).
 
 ---
-
-## 🚀 Uruchomienie
-1. Ustaw connection string w `appsettings.json`
-2. Uruchom migracje:
