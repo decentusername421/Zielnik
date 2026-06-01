@@ -26,7 +26,10 @@ namespace Zielnik.Data
             {
                 if (!context.PlantCategories.Any(c => c.Name == name))
                 {
-                    context.PlantCategories.Add(new PlantCategory { Name = name });
+                    context.PlantCategories.Add(new PlantCategory
+                    {
+                        Name = name
+                    });
                 }
             }
 
@@ -51,19 +54,102 @@ namespace Zielnik.Data
             var bulbs = context.PlantCategories.First(c => c.Name == "Cebulkowe");
             var climbers = context.PlantCategories.First(c => c.Name == "Pnącza");
 
-            // przykładowa roślina
+            // BLACK CHERRY
             if (!context.Plants.Any(p => p.Name == "Black Cherry"))
             {
                 var plant = new Plant
                 {
                     Name = "Black Cherry",
                     Species = "Solanum lycopersicum",
-                    WateringFrequencyDays = 2,
-                    IsCustomPlant = false
+                    WateringFrequencyDays = 2
                 };
 
                 plant.Categories.Add(vegetables);
                 plant.Categories.Add(tomatoes);
+                plant.Categories.Add(annuals);
+
+                context.Plants.Add(plant);
+            }
+
+            // MALINOWY
+            if (!context.Plants.Any(p => p.Name == "Malinowy Warszawski"))
+            {
+                var plant = new Plant
+                {
+                    Name = "Malinowy Warszawski",
+                    Species = "Solanum lycopersicum",
+                    WateringFrequencyDays = 2
+                };
+
+                plant.Categories.Add(vegetables);
+                plant.Categories.Add(tomatoes);
+                plant.Categories.Add(annuals);
+
+                context.Plants.Add(plant);
+            }
+
+            // OGÓREK
+            if (!context.Plants.Any(p => p.Name == "Ogórek Śremski"))
+            {
+                var plant = new Plant
+                {
+                    Name = "Ogórek Śremski",
+                    Species = "Cucumis sativus",
+                    WateringFrequencyDays = 1
+                };
+
+                plant.Categories.Add(vegetables);
+                plant.Categories.Add(cucumbers);
+                plant.Categories.Add(annuals);
+
+                context.Plants.Add(plant);
+            }
+
+            // PAPRYKA
+            if (!context.Plants.Any(p => p.Name == "California Wonder"))
+            {
+                var plant = new Plant
+                {
+                    Name = "California Wonder",
+                    Species = "Capsicum annuum",
+                    WateringFrequencyDays = 3
+                };
+
+                plant.Categories.Add(vegetables);
+                plant.Categories.Add(peppers);
+                plant.Categories.Add(annuals);
+
+                context.Plants.Add(plant);
+            }
+
+            // LIGOL
+            if (!context.Plants.Any(p => p.Name == "Ligol"))
+            {
+                var plant = new Plant
+                {
+                    Name = "Ligol",
+                    Species = "Malus domestica",
+                    WateringFrequencyDays = 7
+                };
+
+                plant.Categories.Add(fruits);
+                plant.Categories.Add(trees);
+                plant.Categories.Add(longLived);
+
+                context.Plants.Add(plant);
+            }
+
+            // BAZYLIA
+            if (!context.Plants.Any(p => p.Name == "Bazylia Genovese"))
+            {
+                var plant = new Plant
+                {
+                    Name = "Bazylia Genovese",
+                    Species = "Ocimum basilicum",
+                    WateringFrequencyDays = 2
+                };
+
+                plant.Categories.Add(herbs);
                 plant.Categories.Add(annuals);
 
                 context.Plants.Add(plant);
