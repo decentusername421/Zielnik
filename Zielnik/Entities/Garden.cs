@@ -9,7 +9,6 @@ namespace Zielnik.Entities
         [Required]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
-
-        public List<Plant> Plants { get; set; } = new();
+        public List<UserPlant> Plants { get; set; } = new();
     }
 }

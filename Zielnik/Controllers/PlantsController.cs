@@ -24,6 +24,7 @@ namespace Zielnik.Controllers
         public async Task<ActionResult<List<PlantDto>>> GetPlants()
         {
             var plants = await _context.Plants
+<<<<<<< HEAD
                 .Include(p => p.Categories)
                 .Select(p => new PlantDto
                 {
@@ -34,6 +35,18 @@ namespace Zielnik.Controllers
                     Categories = p.Categories.Select(c => c.Name).ToList()
                 })
                 .ToListAsync();
+=======
+    .Include(p => p.Categories)
+    .Select(p => new PlantDto
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Species = p.Species,
+        WateringFrequencyDays = p.WateringFrequencyDays,
+        Categories = p.Categories.Select(c => c.Name).ToList()
+    })
+    .ToListAsync();
+>>>>>>> main
 
             return Ok(plants);
         }
@@ -85,15 +98,22 @@ namespace Zielnik.Controllers
         public async Task<IActionResult> DeletePlant(Guid id)
         {
             var plant = await _context.Plants
+<<<<<<< HEAD
                 .Include(p => p.Categories)
                 .Include(p => p.Gardens)
                 .FirstOrDefaultAsync(p => p.Id == id);
+=======
+    .FirstOrDefaultAsync(p => p.Id == id);
+>>>>>>> main
 
             if (plant == null)
                 return NotFound("Plant not found");
 
+<<<<<<< HEAD
             plant.Categories.Clear();
             plant.Gardens.Clear();
+=======
+>>>>>>> main
 
             _context.Plants.Remove(plant);
             await _context.SaveChangesAsync();

@@ -17,8 +17,11 @@ namespace Zielnik.Entities
         [Range(1, 365)]
         public int WateringFrequencyDays { get; set; }
 
-        public List<Garden> Gardens { get; set; } = new();
-
         public List<PlantCategory> Categories { get; set; } = new();
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        public bool IsCustomPlant { get; set; }
+        public List<UserPlant> UserPlants { get; set; } = new();
     }
 }
