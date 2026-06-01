@@ -41,7 +41,7 @@ public static class SeedData
             }
         }
 
-       
+
         var vegetables = context.PlantCategories.First(c => c.Name == "Warzywa");
         var tomatoes = context.PlantCategories.First(c => c.Name == "Pomidory");
         var cucumbers = context.PlantCategories.First(c => c.Name == "Ogórki");
@@ -229,7 +229,7 @@ public static class SeedData
             plant.Categories.Add(fruits);
             plant.Categories.Add(trees);
             plant.Categories.Add(longLived);
-            
+
 
             context.Plants.Add(plant);
         }
@@ -750,11 +750,13 @@ public static class SeedData
             context.Gardens.Add(pergola);
         }
 
-       
+
         var blackCherry = context.Plants.First(p => p.Name == "Black Cherry");
         var malinowy = context.Plants.First(p => p.Name == "Malinowy Warszawski");
         var lawenda = context.Plants.First(p => p.Name == "Lawenda Hidcote Blue");
         var regent = context.Plants.First(p => p.Name == "Regent");
+
+
         if (!context.UserPlants.Any(up => up.Nickname == "Tunel 2025"))
         {
             context.UserPlants.Add(new UserPlant
@@ -764,13 +766,13 @@ public static class SeedData
 
                 Nickname = "Tunel 2025",
 
-                SowingDate = new DateTime(2025, 3, 15, 0, 0, 0, DateTimeKind.Utc),
-                PlantingDate = new DateTime(2025, 5, 1, 0, 0, 0, DateTimeKind.Utc),
+                SowingDate = new DateTime(2025, 3, 15),
+                PlantingDate = new DateTime(2025, 5, 1),
 
                 Status = PlantStatus.Harvested
             });
-        }
 
+        }
         if (!context.UserPlants.Any(up => up.Nickname == "Grządka południowa"))
         {
             context.UserPlants.Add(new UserPlant
@@ -786,6 +788,7 @@ public static class SeedData
                 Status = PlantStatus.Active
             });
         }
+
 
         if (!context.UserPlants.Any(up => up.Nickname == "Eksperyment"))
         {
@@ -830,5 +833,204 @@ public static class SeedData
         }
 
         context.SaveChanges();
+
+
+        if (!context.PlantNotes.Any())
+        {
+            var tunnelTomato = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
+
+            var lavender = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
+
+            if (tunnelTomato != null)
+            {
+                context.PlantNotes.Add(new PlantNote
+                {
+                    UserPlantId = tunnelTomato.Id,
+                    Title = "Pierwsze kwitnienie",
+                    Content = "Pojawiły się pierwsze kwiaty.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-30)
+                });
+
+                context.PlantNotes.Add(new PlantNote
+                {
+                    UserPlantId = tunnelTomato.Id,
+                    Title = "Dobry wzrost",
+                    Content = "Roślina rozwija się bardzo dobrze.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-15)
+                });
+            }
+
+            if (lavender != null)
+            {
+                context.PlantNotes.Add(new PlantNote
+                {
+                    UserPlantId = lavender.Id,
+                    Title = "Po zimie",
+                    Content = "Lawenda dobrze przezimowała.",
+                    CreatedAt = DateTime.UtcNow.AddDays(-10)
+                });
+            }
+            context.SaveChanges();
+
+        }
+        if (!context.PlantTreatments.Any())
+        {
+            var treatmentTomato = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
+
+            var treatmentLavender = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
+
+            if (treatmentTomato != null)
+            {
+                context.PlantTreatments.AddRange(
+                    new PlantTreatment
+                    {
+                        UserPlantId = treatmentTomato.Id,
+                        TreatmentType = "Nawożenie",
+                        ProductName = "Biohumus",
+                        Quantity = 50,
+                        Unit = "ml",
+                        Notes = "Nawóz organiczny.",
+                        PerformedAt = DateTime.UtcNow.AddDays(-25)
+                    },
+                    new PlantTreatment
+                    {
+                        UserPlantId = treatmentTomato.Id,
+                        TreatmentType = "Oprysk",
+                        ProductName = "Miedzian 50 WP",
+                        Quantity = 10,
+                        Unit = "g",
+                        Notes = "Profilaktyka przeciw chorobom grzybowym.",
+                        PerformedAt = DateTime.UtcNow.AddDays(-18)
+                    },
+                    new PlantTreatment
+                    {
+                        UserPlantId = treatmentTomato.Id,
+                        TreatmentType = "Podlewanie",
+                        Quantity = 5,
+                        Unit = "l",
+                        Notes = "Podlewanie po upalnym dniu.",
+                        PerformedAt = DateTime.UtcNow.AddDays(-2)
+                    }
+                );
+            }
+
+            if (treatmentLavender != null)
+            {
+                context.PlantTreatments.Add(
+                    new PlantTreatment
+                    {
+                        UserPlantId = treatmentLavender.Id,
+                        TreatmentType = "Przycinanie",
+                        Notes = "Usunięto przekwitłe pędy.",
+                        PerformedAt = DateTime.UtcNow.AddDays(-7)
+                    });
+            }
+
+            context.SaveChanges();
+        }
+
+        if (!context.Harvests.Any())
+        {
+            var harvestTomato = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
+
+            if (harvestTomato != null)
+            {
+                context.Harvests.AddRange(
+                    new Harvest
+                    {
+                        UserPlantId = harvestTomato.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-20),
+                        Quantity = 2.5m,
+                        Unit = "kg",
+                        FruitsCount = 45,
+                        Notes = "Pierwszy zbiór pomidorów."
+                    },
+                  
+                    new Harvest
+                    {
+                        UserPlantId = harvestTomato.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-3),
+                        Quantity = 1.7m,
+                        Unit = "kg",
+                        FruitsCount = 28,
+                        Notes = "Końcówka sezonu."
+                    },
+                    new Harvest
+                    {
+                        UserPlantId = harvestTomato.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-20),
+                        Quantity = 2.5m,
+                        Unit = "kg",
+                        FruitsCount = 45,
+                        Notes = "Pierwszy zbiór dojrzałych owoców Black Cherry."
+                    },
+                    new Harvest
+                    {
+                        UserPlantId = harvestTomato.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-10),
+                        Quantity = 3.8m,
+                        Unit = "kg",
+                        FruitsCount = 62,
+                        Notes = "Największy zbiór w sezonie."
+                    },
+                    new Harvest
+                    {
+                        UserPlantId = harvestTomato.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-30),
+                        Quantity = 1.7m,
+                        Unit = "kg",
+                        FruitsCount = 28,
+                        Notes = "Końcowy zbiór przed usunięciem roślin."
+                    }
+                );
+            }
+
+            context.SaveChanges();
+        }
+
+        if (!context.PlantPhotos.Any())
+        {
+            var photoTomato = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
+
+            var photoLavender = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
+
+            if (photoTomato != null)
+            {
+                context.PlantPhotos.AddRange(
+                    new PlantPhoto
+                    {
+                        UserPlantId = photoTomato.Id,
+                        FilePath = "/photos/tomato-1.jpg",
+                        CreatedAt = DateTime.UtcNow.AddDays(-30)
+                    },
+                    new PlantPhoto
+                    {
+                        UserPlantId = photoTomato.Id,
+                        FilePath = "/photos/tomato-2.jpg",
+                        CreatedAt = DateTime.UtcNow.AddDays(-15)
+                    }
+                );
+            }
+
+            if (photoLavender != null)
+            {
+                context.PlantPhotos.Add(
+                    new PlantPhoto
+                    {
+                        UserPlantId = photoLavender.Id,
+                        FilePath = "/photos/lavender-1.jpg",
+                        CreatedAt = DateTime.UtcNow.AddDays(-7)
+                    });
+            }
+
+            context.SaveChanges();
+        }
     }
 }
