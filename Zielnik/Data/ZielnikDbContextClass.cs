@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zielnik.Entities;
 using Zielnik.Data;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Zielnik.Data
 {
-    public class ZielnikDbContext : DbContext
+    public class ZielnikDbContext : IdentityDbContext
     {
         public ZielnikDbContext(
             DbContextOptions<ZielnikDbContext> options)
