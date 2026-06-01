@@ -1,5 +1,8 @@
 Podział pracy na 3 osoby
+
+
 Osoba 1 — Backend i baza danych
+
 Zakres prac
 konfiguracja projektu ASP.NET Core,
 konfiguracja bazy danych,
@@ -10,7 +13,6 @@ walidatory modeli,
 przygotowanie REST API,
 filtrowanie i sortowanie danych,
 zabezpieczenie endpointów.
-Odpowiedzialność
 
 Najważniejsza logika backendowa oraz poprawne działanie bazy danych.
 
@@ -22,7 +24,10 @@ Services/
 Repositories/
 Data/ApplicationDbContext.cs
 Program.cs
+
+
 Osoba 2 — Frontend i interfejs użytkownika
+
 Zakres prac
 stworzenie widoków aplikacji,
 formularze dodawania i edycji,
@@ -33,7 +38,6 @@ lista zadań,
 obsługa komunikacji z API,
 responsywny wygląd aplikacji,
 obsługa błędów formularzy.
-Odpowiedzialność
 
 Cały interfejs użytkownika i UX.
 
@@ -43,7 +47,11 @@ panel główny,
 szczegóły ogrodu,
 szczegóły rośliny,
 harmonogram zadań.
+
+
+
 Osoba 3 — System użytkowników, powiadomienia i testy
+
 Zakres prac
 autoryzacja i role użytkowników,
 zabezpieczenia dostępu,
@@ -54,8 +62,7 @@ testowanie aplikacji,
 przygotowanie seed danych,
 dokumentacja projektu,
 README,
-przygotowanie prezentacji.
-Odpowiedzialność
+upewnienie się, że aplikacja się uruchomi.
 
 Bezpieczeństwo, stabilność projektu i finalne dopracowanie.
 
@@ -65,6 +72,7 @@ każdy pracuje na osobnym branchu,
 pull requesty do main,
 częste commity,
 sensowne nazwy commitów.
+
 Proponowana struktura branchy
 main
 backend
