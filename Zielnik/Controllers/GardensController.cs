@@ -45,21 +45,37 @@ namespace Zielnik.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Garden>> CreateGarden(Garden garden)
+        public async Task<ActionResult<GardenDto>> CreateGarden(CreateGardenDto dto)
         {
-            // Tworzenie nowego ogrodu w bazie danych
+            var garden = new Garden
+            {
+                Name = dto.Name
+            };
+
             _context.Gardens.Add(garden);
             await _context.SaveChangesAsync();
-            return Ok(garden);
+
+            var gardenDto = new GardenDto
+            {
+                Id = garden.Id,
+                Name = garden.Name,
+                Plants = new List<string>()
+            };
+
+            return CreatedAtAction(
+                nameof(GetGarden),
+                new { id = garden.Id },
+                gardenDto);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Garden>> UpdateGarden(Guid id, [FromBody] GardenUpdateDto updatedData)
+        public async Task<ActionResult<GardenDto>> UpdateGarden(
+     Guid id,
+     [FromBody] UpdateGardenDto updatedData)
         {
-            // Aktualizacja nazwy ogrodu za pomocą obiektu DTO
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
-                    .ThenInclude(up => up.Plant)
+                .ThenInclude(up => up.Plant)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (garden == null)
@@ -67,11 +83,20 @@ namespace Zielnik.Controllers
                 return NotFound("Nie znaleziono ogrodu.");
             }
 
-            // Przypisanie nowej nazwy wpisanej przez użytkownika
             garden.Name = updatedData.Name;
 
             await _context.SaveChangesAsync();
-            return Ok(garden);
+
+            var gardenDto = new GardenDto
+            {
+                Id = garden.Id,
+                Name = garden.Name,
+                Plants = garden.Plants
+                    .Select(p => p.Plant.Name)
+                    .ToList()
+            };
+
+            return Ok(gardenDto);
         }
 
         [HttpDelete("{id}")]
@@ -113,55 +138,5 @@ namespace Zielnik.Controllers
             return Ok(gardens);
         }
 
-        //[HttpPost("{gardenId}/plants/{plantId}")]
-        //public async Task<IActionResult> AddPlantToGarden(Guid gardenId, Guid plantId)
-        //{
-        //    // Przypisywanie (sadzenie) rośliny w wybranym ogrodzie
-        //    var garden = await _context.Gardens
-        //        .Include(g => g.Plants)
-        //        .FirstOrDefaultAsync(g => g.Id == gardenId);
-
-        //    if (garden == null)
-        //    {
-        //        return NotFound("Garden not found.");
-        //    }
-
-        //    var plant = await _context.Plants.FindAsync(plantId);
-
-        //    if (plant == null)
-        //    {
-        //        return NotFound("Plant not found.");
-        //    }
-
-        //    if (garden.Plants.Any(p => p.Id == plantId))
-        //    {
-        //        return BadRequest("Plant already assigned to garden.");
-        //    }
-
-        //    garden.Plants.Add(plant);
-        //    await _context.SaveChangesAsync();
-        //    return NoContent();
-        //}
-
-        //[HttpDelete("{gardenId}/plants/{plantId}")]
-        //public async Task<IActionResult> RemovePlantFromGarden(Guid gardenId, Guid plantId)
-        //{
-        //    // Usuwanie konkretnej rośliny z wybranego ogrodu
-        //    var garden = await _context.Gardens
-        //        .Include(g => g.Plants)
-        //        .FirstOrDefaultAsync(g => g.Id == gardenId);
-
-        //    if (garden == null)
-        //        return NotFound("Garden not found.");
-
-        //    var plant = garden.Plants.FirstOrDefault(p => p.Id == plantId);
-
-        //    if (plant == null)
-        //        return NotFound("Plant not found in garden.");
-
-        //    garden.Plants.Remove(plant);
-        //    await _context.SaveChangesAsync();
-        //    return NoContent();
-        //}
     }
 }

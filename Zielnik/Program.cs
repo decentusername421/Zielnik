@@ -25,6 +25,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseAuthorization();
 
 app.MapControllers();
@@ -40,6 +42,8 @@ using (var scope = app.Services.CreateScope())
 
     SeedData.Initialize(context);
 }
+
+
 
 app.Run();
 

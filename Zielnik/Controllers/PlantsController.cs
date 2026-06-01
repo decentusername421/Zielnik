@@ -18,19 +18,32 @@ namespace Zielnik.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<PlantDto>>> GetPlants()
+        public async Task<ActionResult<List<PlantDto>>> GetPlants(
+    [FromQuery] string? category)
         {
-            var plants = await _context.Plants
-    .Include(p => p.Categories)
-    .Select(p => new PlantDto
-    {
-        Id = p.Id,
-        Name = p.Name,
-        Species = p.Species,
-        WateringFrequencyDays = p.WateringFrequencyDays,
-        Categories = p.Categories.Select(c => c.Name).ToList()
-    })
-    .ToListAsync();
+            var query = _context.Plants
+                .Include(p => p.Categories)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(p =>
+                    p.Categories.Any(c =>
+                        c.Name.ToLower() == category.ToLower()));
+            }
+
+            var plants = await query
+                .Select(p => new PlantDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Species = p.Species,
+                    WateringFrequencyDays = p.WateringFrequencyDays,
+                    Categories = p.Categories
+                        .Select(c => c.Name)
+                        .ToList()
+                })
+                .ToListAsync();
 
             return Ok(plants);
         }
@@ -91,6 +104,47 @@ namespace Zielnik.Controllers
 
 
             _context.Plants.Remove(plant);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PlantDto>> GetPlant(Guid id)
+        {
+            var plant = await _context.Plants
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (plant == null)
+                return NotFound();
+
+            return Ok(new PlantDto
+            {
+                Id = plant.Id,
+                Name = plant.Name,
+                Species = plant.Species,
+                WateringFrequencyDays = plant.WateringFrequencyDays,
+                Categories = plant.Categories
+                    .Select(c => c.Name)
+                    .ToList()
+            });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePlant(
+    Guid id,
+    UpdatePlantDto dto)
+        {
+            var plant = await _context.Plants.FindAsync(id);
+
+            if (plant == null)
+                return NotFound();
+
+            plant.Name = dto.Name;
+            plant.Species = dto.Species;
+            plant.WateringFrequencyDays = dto.WateringFrequencyDays;
+
             await _context.SaveChangesAsync();
 
             return NoContent();
