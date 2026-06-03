@@ -15,6 +15,7 @@ Widoków MVC (GardensPage, PlantsPage)
 Systemu powiadomień i zadań
 
 📌 Funkcjonalności
+
 🔐 Autoryzacja i role użytkowników
 Rejestracja użytkownika (/api/Auth/register)
 
@@ -120,6 +121,7 @@ Pergola
 Dzięki temu aplikacja działa od razu po uruchomieniu.
 
 🔥 Najważniejsze endpointy API
+
 🔐 Autoryzacja
 Metoda	Endpoint	Opis
 POST	/api/Auth/register	Rejestracja
