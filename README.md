@@ -119,45 +119,6 @@ Pergola
 
 Dzięki temu aplikacja działa od razu po uruchomieniu.
 
-🧱 Architektura projektu
-Kod
-Zielnik/
-│
-├── Controllers/
-│   ├── AuthController.cs
-│   ├── GardensController.cs
-│   ├── PlantsController.cs
-│   ├── PlantCategoriesController.cs
-│   ├── UserPlantsController.cs
-│   ├── TasksController.cs
-│   └── MVC Controllers (GardensPage, PlantsPage)
-│
-├── DTOs/
-│   ├── CreateUserDto.cs
-│   ├── LoginDto.cs
-│   ├── CreateGardenDto.cs
-│   ├── CreatePlantDto.cs
-│   ├── CreateUserPlantDto.cs
-│   ├── Update DTOs
-│   └── View DTOs
-│
-├── Entities/
-│   ├── Plant.cs
-│   ├── Garden.cs
-│   ├── PlantCategory.cs
-│   ├── UserPlant.cs
-│   ├── PlantNote.cs
-│   ├── PlantTreatment.cs
-│   ├── Harvest.cs
-│   └── PlantPhoto.cs
-│
-├── Data/
-│   ├── ZielnikDbContext.cs
-│   └── SeedData.cs
-│
-└── Views/
-    ├── GardensPage/
-    └── PlantsPage/
 🔥 Najważniejsze endpointy API
 🔐 Autoryzacja
 Metoda	Endpoint	Opis
@@ -222,6 +183,7 @@ Uruchom migracje:
 
 Kod
 dotnet ef database update
+
 Uruchom aplikację:
 
 Kod
