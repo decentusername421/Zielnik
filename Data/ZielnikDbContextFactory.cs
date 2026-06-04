@@ -18,7 +18,7 @@ namespace Zielnik.Data
 
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder.UseSqlite(connectionString);
 
             return new ZielnikDbContext(optionsBuilder.Options);
         }
