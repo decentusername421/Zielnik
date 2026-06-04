@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json.Serialization;
 using Zielnik.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,8 +61,15 @@ builder.Services.AddAuthorization();
 
 // ======================
 // CONTROLLERS
-// ======================
-builder.Services.AddControllers();
+
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 
 // ======================
@@ -95,6 +104,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+Console.WriteLine("JSON IgnoreCycles loaded");
 
 // ======================
 // PIPELINE
@@ -111,5 +121,30 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole>>();
+
+    string[] roles = { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<ZielnikDbContext>();
+
+    SeedData.Initialize(context);
+}
+
 
 app.Run();

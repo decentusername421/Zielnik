@@ -11,8 +11,8 @@ using Zielnik.Data;
 namespace Zielnik.Migrations
 {
     [DbContext(typeof(ZielnikDbContext))]
-    [Migration("20260604160657_InitialSqlite")]
-    partial class InitialSqlite
+    [Migration("20260604173427_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

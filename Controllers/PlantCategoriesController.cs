@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
+using Zielnik.DTOs;
 using Zielnik.Entities;
 
 namespace Zielnik.Controllers
@@ -18,12 +19,20 @@ namespace Zielnik.Controllers
 
         // GET: api/categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlantCategory>>> GetCategories()
+        public async Task<IActionResult> GetCategories()
         {
-            return await _context.PlantCategories.ToListAsync();
+            var categories = await _context.PlantCategories
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Name
+                })
+                .ToListAsync();
+
+            return Ok(categories);
         }
 
-        // GET: api/categories/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<PlantCategory>> GetCategory(Guid id)
         {
@@ -36,6 +45,7 @@ namespace Zielnik.Controllers
 
             return category;
         }
+
 
         // POST: api/categories
         [HttpPost]
@@ -50,43 +60,32 @@ namespace Zielnik.Controllers
                 category);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(Guid id, PlantCategory? category)
-        {
-            if (category == null)
-            {
-                return BadRequest();
-            }
+       [HttpPut("{id}")]
+public async Task<IActionResult> UpdateCategory(
+    Guid id,
+    UpdateCategoryDto dto)
+{
+    var category = await _context.PlantCategories.FindAsync(id);
 
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
+    if (category == null)
+    {
+        return NotFound();
+    }
 
-            _context.Entry(category).State = EntityState.Modified;
+    category.Name = dto.Name;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.PlantCategories.Any(c => c.Id == id))
-                {
-                    return NotFound();
-                }
+    await _context.SaveChangesAsync();
 
-                throw;
-            }
-
-            return NoContent();
-        }
+    return NoContent();
+}
 
         // DELETE: api/categories/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
-            var category = await _context.PlantCategories.FindAsync(id);
+            var category = await _context.PlantCategories
+                .Include(c => c.Plants)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
             {

@@ -19,5 +19,6 @@ namespace Zielnik.Entities
         public int? FruitsCount { get; set; }
 
         public string? Notes { get; set; }
+
     }
 }
