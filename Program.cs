@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // DB
 // ======================
 builder.Services.AddDbContext<ZielnikDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ======================
 // IDENTITY
