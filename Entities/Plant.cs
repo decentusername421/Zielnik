@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace Zielnik.Entities
 {
@@ -28,6 +29,12 @@ namespace Zielnik.Entities
         public string? Description { get; set; }
 
         public bool IsCustomPlant { get; set; }
+
+        public bool IsApproved { get; set; } = true;
+
+        public string? CreatedByUserId { get; set; }
+
+        public IdentityUser? CreatedByUser { get; set; }
         public List<UserPlant> UserPlants { get; set; } = new();
     }
 }

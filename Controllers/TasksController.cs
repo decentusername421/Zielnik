@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
+using System.Security.Claims;
+
 
 namespace Zielnik.Controllers
 {
@@ -20,37 +22,95 @@ namespace Zielnik.Controllers
         [HttpGet("today")]
         public async Task<IActionResult> GetTodayTasks()
         {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
             var today = DateTime.UtcNow.Date;
 
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
+                .Include(up => up.Garden)
+                .Where(up => up.Garden.UserId == userId)
                 .ToListAsync();
 
-            var tasks = plants
-                .Where(up =>
-                    up.PlantingDate.HasValue &&
-                    up.Plant.WateringFrequencyDays > 0 &&
-                    ((today - up.PlantingDate.Value.Date).Days %
-                     up.Plant.WateringFrequencyDays == 0))
-                .Select(up => new
+            var tasks = new List<object>();
+
+            foreach (var plant in plants)
+            {
+                if (!plant.PlantingDate.HasValue)
+                    continue;
+
+                var days = (today - plant.PlantingDate.Value.Date).Days;
+
+                // Watering
+                if (plant.Plant.WateringFrequencyDays > 0 &&
+                    days % plant.Plant.WateringFrequencyDays == 0)
                 {
-                    Plant = up.Plant.Name,
-                    Nickname = up.Nickname,
-                    Task = "Watering",
-                    Today = today
-                });
+                    tasks.Add(new
+                    {
+                        Plant = plant.Plant.Name,
+                        Nickname = plant.Nickname,
+                        Task = "Watering",
+                        DueDate = today
+                    });
+                }
+
+                // Fertilizing
+                if (plant.Plant.FertilizingFrequencyDays > 0 &&
+                    days % plant.Plant.FertilizingFrequencyDays == 0)
+                {
+                    tasks.Add(new
+                    {
+                        Plant = plant.Plant.Name,
+                        Nickname = plant.Nickname,
+                        Task = "Fertilizing",
+                        DueDate = today
+                    });
+                }
+
+                // Spraying
+                if (plant.Plant.SprayingFrequencyDays > 0 &&
+                    days % plant.Plant.SprayingFrequencyDays == 0)
+                {
+                    tasks.Add(new
+                    {
+                        Plant = plant.Plant.Name,
+                        Nickname = plant.Nickname,
+                        Task = "Spraying",
+                        DueDate = today
+                    });
+                }
+
+                // Harvest
+                if (plant.Plant.HarvestAfterDays > 0 &&
+                    days >= plant.Plant.HarvestAfterDays)
+                {
+                    tasks.Add(new
+                    {
+                        Plant = plant.Plant.Name,
+                        Nickname = plant.Nickname,
+                        Task = "Harvest",
+                        DueDate = today
+                    });
+                }
+            }
 
             return Ok(tasks);
+
         }
 
         [HttpGet("notifications")]
         public async Task<IActionResult> GetNotifications()
         {
+            var userId = User.FindFirstValue(
+    ClaimTypes.NameIdentifier);
             var today = DateTime.UtcNow.Date;
 
             var plants = await _context.UserPlants
-                .Include(up => up.Plant)
-                .ToListAsync();
+    .Include(up => up.Plant)
+    .Include(up => up.Garden)
+    .Where(up => up.Garden.UserId == userId)
+    .ToListAsync();
 
             var notifications = plants
                 .Where(up =>
@@ -67,9 +127,15 @@ namespace Zielnik.Controllers
         [HttpGet("plant/{userPlantId}")]
         public async Task<IActionResult> GetPlantTasks(Guid userPlantId)
         {
+            var userId = User.FindFirstValue(
+    ClaimTypes.NameIdentifier);
+
             var userPlant = await _context.UserPlants
                 .Include(up => up.Plant)
-                .FirstOrDefaultAsync(up => up.Id == userPlantId);
+                .Include(up => up.Garden)
+                .FirstOrDefaultAsync(up =>
+                    up.Id == userPlantId &&
+                    up.Garden.UserId == userId);
 
             if (userPlant == null)
                 return NotFound("Plant not found");
@@ -104,12 +170,17 @@ namespace Zielnik.Controllers
         public async Task<IActionResult> GetUpcomingTasks(
             [FromQuery] int days = 7)
         {
+            var userId = User.FindFirstValue(
+    ClaimTypes.NameIdentifier);
+
             var today = DateTime.UtcNow.Date;
             var endDate = today.AddDays(days);
 
             var plants = await _context.UserPlants
-                .Include(up => up.Plant)
-                .ToListAsync();
+    .Include(up => up.Plant)
+    .Include(up => up.Garden)
+    .Where(up => up.Garden.UserId == userId)
+    .ToListAsync();
 
             var tasks = new List<object>();
 
