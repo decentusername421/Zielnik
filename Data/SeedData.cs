@@ -55,9 +55,50 @@ public static class SeedData
                 Name = "User",
                 NormalizedName = "USER"
             });
+      
         }
 
         context.SaveChanges();
+
+        var adminRole = context.Roles.First(r => r.Name == "Admin");
+        var userRole = context.Roles.First(r => r.Name == "User");
+
+        if (!context.UserRoles.Any(x =>
+            x.UserId == admin.Id &&
+            x.RoleId == adminRole.Id))
+        {
+            context.UserRoles.Add(new IdentityUserRole<string>
+            {
+                UserId = admin.Id,
+                RoleId = adminRole.Id
+            });
+        }
+
+        if (!context.UserRoles.Any(x =>
+            x.UserId == anna.Id &&
+            x.RoleId == userRole.Id))
+        {
+            context.UserRoles.Add(new IdentityUserRole<string>
+            {
+                UserId = anna.Id,
+                RoleId = userRole.Id
+            });
+        }
+
+        if (!context.UserRoles.Any(x =>
+            x.UserId == jan.Id &&
+            x.RoleId == userRole.Id))
+        {
+            context.UserRoles.Add(new IdentityUserRole<string>
+            {
+                UserId = jan.Id,
+                RoleId = userRole.Id
+            });
+        }
+
+        context.SaveChanges();
+
+
 
         var categoryNames = new[]
         {
@@ -124,7 +165,10 @@ public static class SeedData
             {
                 Name = "Black Cherry",
                 Species = "Solanum lycopersicum",
-                WateringFrequencyDays = 2,
+                WateringFrequencyDays = 3,
+                FertilizingFrequencyDays = 30,
+                SprayingFrequencyDays = 60,
+                HarvestAfterDays = 120,
                 Description = "Pomidor koktajlowy o ciemnych, słodkich owocach.",
                 IsCustomPlant = false
             };
@@ -410,6 +454,9 @@ public static class SeedData
                 Name = "Bluecrop",
                 Species = "Vaccinium corymbosum",
                 WateringFrequencyDays = 3,
+                FertilizingFrequencyDays = 30,
+                SprayingFrequencyDays = 60,
+                HarvestAfterDays = 120,
                 Description = "Jedna z najpopularniejszych odmian borówki amerykańskiej.",
                 IsCustomPlant = false
             };
@@ -448,6 +495,9 @@ public static class SeedData
                 Name = "Bazylia Genovese",
                 Species = "Ocimum basilicum",
                 WateringFrequencyDays = 2,
+                FertilizingFrequencyDays = 14,
+                SprayingFrequencyDays = 30,
+                HarvestAfterDays = 60,
                 Description = "Klasyczna bazylia włoska.",
                 IsCustomPlant = false
             };
@@ -465,7 +515,10 @@ public static class SeedData
             {
                 Name = "Mięta pieprzowa",
                 Species = "Mentha × piperita",
-                WateringFrequencyDays = 3,
+                WateringFrequencyDays = 2,
+                FertilizingFrequencyDays = 14,
+                SprayingFrequencyDays = 40,
+                HarvestAfterDays = 10,
                 Description = "Aromatyczna bylina zielarska.",
                 IsCustomPlant = false
             };
@@ -484,7 +537,11 @@ public static class SeedData
             {
                 Name = "Rozmaryn lekarski",
                 Species = "Salvia rosmarinus",
+
                 WateringFrequencyDays = 4,
+                FertilizingFrequencyDays = 30,
+                SprayingFrequencyDays = 45,
+                HarvestAfterDays = 90,
                 Description = "Zioło śródziemnomorskie.",
                 IsCustomPlant = false
             };
@@ -502,7 +559,11 @@ public static class SeedData
             {
                 Name = "Tymianek pospolity",
                 Species = "Thymus vulgaris",
+
                 WateringFrequencyDays = 4,
+                FertilizingFrequencyDays = 30,
+                SprayingFrequencyDays = 45,
+                HarvestAfterDays = 90,
                 Description = "Niskie zioło o intensywnym aromacie.",
                 IsCustomPlant = false
             };

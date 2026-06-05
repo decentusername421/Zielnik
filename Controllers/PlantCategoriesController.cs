@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
 using Zielnik.DTOs;
@@ -48,6 +49,7 @@ namespace Zielnik.Controllers
 
 
         // POST: api/categories
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<PlantCategory>> CreateCategory(PlantCategory category)
         {
@@ -60,7 +62,8 @@ namespace Zielnik.Controllers
                 category);
         }
 
-       [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
 public async Task<IActionResult> UpdateCategory(
     Guid id,
     UpdateCategoryDto dto)
@@ -80,6 +83,7 @@ public async Task<IActionResult> UpdateCategory(
 }
 
         // DELETE: api/categories/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
