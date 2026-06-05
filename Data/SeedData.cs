@@ -1,10 +1,64 @@
+using Microsoft.AspNetCore.Identity;
 using Zielnik.Data;
 using Zielnik.Entities;
 
 public static class SeedData
 {
     public static void Initialize(ZielnikDbContext context)
+
     {
+        var hasher = new PasswordHasher<IdentityUser>();
+
+        IdentityUser EnsureUser(string email)
+        {
+            var user = context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = email,
+                    Email = email,
+                    NormalizedEmail = email.ToUpper(),
+                    NormalizedUserName = email.ToUpper(),
+                    EmailConfirmed = true
+                };
+
+                user.PasswordHash =
+                    hasher.HashPassword(user, "Zielnik123!");
+
+                context.Users.Add(user);
+                context.SaveChanges();
+            }
+
+            return user;
+        }
+
+        var admin = EnsureUser("admin@zielnik.pl");
+        var anna = EnsureUser("anna@zielnik.pl");
+        var jan = EnsureUser("jan@zielnik.pl");
+
+        if (!context.Roles.Any(r => r.Name == "Admin"))
+        {
+            context.Roles.Add(new IdentityRole
+            {
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            });
+        }
+
+        if (!context.Roles.Any(r => r.Name == "User"))
+        {
+            context.Roles.Add(new IdentityRole
+            {
+                Name = "User",
+                NormalizedName = "USER"
+            });
+        }
+
+        context.SaveChanges();
+
         var categoryNames = new[]
         {
             "Warzywa",
@@ -711,7 +765,8 @@ public static class SeedData
         {
             homeGarden = new Garden
             {
-                Name = "Ogród przydomowy"
+                Name = "Ogród przydomowy",
+                UserId = admin.Id
             };
 
             context.Gardens.Add(homeGarden);
@@ -722,7 +777,8 @@ public static class SeedData
         {
             tunnel = new Garden
             {
-                Name = "Tunel foliowy"
+                Name = "Tunel foliowy",
+                UserId = jan.Id
             };
 
             context.Gardens.Add(tunnel);
@@ -733,7 +789,8 @@ public static class SeedData
         {
             balcony = new Garden
             {
-                Name = "Balkon"
+                Name = "Balkon",
+                UserId = anna.Id
             };
 
             context.Gardens.Add(balcony);
@@ -744,18 +801,133 @@ public static class SeedData
         {
             pergola = new Garden
             {
-                Name = "Pergola"
+                Name = "Pergola",
+                UserId = admin.Id
             };
 
             context.Gardens.Add(pergola);
         }
         context.SaveChanges();
 
-        var blackCherry = context.Plants.First(p => p.Name == "Black Cherry");
-        var malinowy = context.Plants.First(p => p.Name == "Malinowy Warszawski");
-        var lawenda = context.Plants.First(p => p.Name == "Lawenda Hidcote Blue");
-        var regent = context.Plants.First(p => p.Name == "Regent");
+        homeGarden.UserId = admin.Id;
+        tunnel.UserId = jan.Id;
+        balcony.UserId = anna.Id;
+        pergola.UserId = admin.Id;
 
+        context.SaveChanges();
+
+        var annaBalcony = context.Gardens
+    .First(g => g.Name == "Balkon");
+
+        var janTunnel = context.Gardens
+            .First(g => g.Name == "Tunel foliowy");
+
+        var basil = context.Plants
+            .First(p => p.Name == "Bazylia Genovese");
+
+        var rosemary = context.Plants
+            .First(p => p.Name == "Rozmaryn lekarski");
+
+     
+        var blueberry = context.Plants
+            .First(p => p.Name == "Bluecrop");
+
+        var blackCherry = context.Plants
+    .First(p => p.Name == "Black Cherry");
+
+        var malinowy = context.Plants
+            .First(p => p.Name == "Malinowy Warszawski");
+
+        var lawenda = context.Plants
+            .First(p => p.Name == "Lawenda Hidcote Blue");
+
+        var regent = context.Plants
+            .First(p => p.Name == "Regent");
+
+        var annaBasil = new UserPlant
+        {
+            PlantId = basil.Id,
+            GardenId = annaBalcony.Id,
+
+            Nickname = "Bazylia balkonowa",
+
+            SowingDate = new DateTime(2025, 4, 10),
+            PlantingDate = new DateTime(2025, 5, 1),
+
+            Status = PlantStatus.Active
+        };
+
+        var annaRosemary = new UserPlant
+        {
+            PlantId = rosemary.Id,
+            GardenId = annaBalcony.Id,
+
+            Nickname = "Rozmaryn do kuchni",
+
+            PlantingDate = new DateTime(2025, 4, 15),
+
+            Status = PlantStatus.Active
+        };
+
+        
+        var janTomato = new UserPlant
+        {
+            PlantId = blackCherry.Id,
+            GardenId = janTunnel.Id,
+
+            Nickname = "Pomidory do szklarni",
+
+            SowingDate = new DateTime(2025, 3, 10),
+            PlantingDate = new DateTime(2025, 4, 15),
+
+            Status = PlantStatus.Active
+        };
+
+        var janBlueberry = new UserPlant
+        {
+            PlantId = blueberry.Id,
+            GardenId = janTunnel.Id,
+
+            Nickname = "Borówki",
+
+            PlantingDate = new DateTime(2024, 4, 1),
+
+            Status = PlantStatus.Active
+        };
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Bazylia balkonowa"))
+        {
+            context.UserPlants.Add(annaBasil);
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Rozmaryn do kuchni"))
+        {
+            context.UserPlants.Add(annaRosemary);
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Pomidory do szklarni"))
+        {
+            context.UserPlants.Add(janTomato);
+        }
+
+        if (!context.UserPlants.Any(up => up.Nickname == "Borówki"))
+        {
+            context.UserPlants.Add(janBlueberry);
+        }
+
+        context.SaveChanges();
+
+        var annaBasilDb = context.UserPlants
+   .First(up => up.Nickname == "Bazylia balkonowa");
+
+        var annaRosemaryDb = context.UserPlants
+           .First(up => up.Nickname == "Rozmaryn do kuchni");
+
+        var janTomatoDb = context.UserPlants
+           .First(up => up.Nickname == "Pomidory do szklarni");
+
+        var janBlueberryDb = context.UserPlants
+           .First(up => up.Nickname == "Borówki");
 
         if (!context.UserPlants.Any(up => up.Nickname == "Tunel 2025"))
         {
@@ -833,6 +1005,7 @@ public static class SeedData
         }
 
         context.SaveChanges();
+
 
 
         if (!context.PlantNotes.Any())
@@ -993,6 +1166,32 @@ public static class SeedData
             context.SaveChanges();
         }
 
+        context.PlantNotes.AddRange(
+
+    new PlantNote
+    {
+        UserPlantId = annaBasilDb.Id,
+        Title = "Pierwsze liście",
+        Content = "Bazylia zaczęła szybko rosnąć.",
+        CreatedAt = new DateTime(2025, 5, 10)
+    },
+
+    new PlantNote
+    {
+        UserPlantId = annaBasilDb.Id,
+        Title = "Przesadzenie",
+        Content = "Przeniesiona do większej doniczki.",
+        CreatedAt = new DateTime(2025, 5, 20)
+    },
+
+    new PlantNote
+    {
+        UserPlantId = annaRosemaryDb.Id,
+        Title = "Dobra kondycja",
+        Content = "Rozmaryn bardzo dobrze znosi upały.",
+        CreatedAt = new DateTime(2025, 6, 1)
+    }
+);
         if (!context.PlantPhotos.Any())
         {
             var photoTomato = context.UserPlants
@@ -1031,6 +1230,77 @@ public static class SeedData
             }
 
             context.SaveChanges();
+
         }
+            context.PlantTreatments.AddRange(
+
+    new PlantTreatment
+    {
+        UserPlantId = annaBasilDb.Id,
+        TreatmentType = "Watering",
+        Notes = "Obfite podlewanie",
+        PerformedAt = new DateTime(2025, 5, 12)
+    },
+
+    new PlantTreatment
+    {
+        UserPlantId = annaBasilDb.Id,
+        TreatmentType = "Fertilizing",
+        ProductName = "Biohumus",
+        PerformedAt = new DateTime(2025, 5, 25)
+    },
+
+    new PlantTreatment
+    {
+        UserPlantId = janTomatoDb.Id,
+        TreatmentType = "Spraying",
+        ProductName = "Miedzian",
+        PerformedAt = new DateTime(2025, 6, 10)
+    },
+
+    new PlantTreatment
+    {
+        UserPlantId = janTomatoDb.Id,
+        TreatmentType = "Watering",
+        PerformedAt = new DateTime(2025, 6, 12)
+    }
+);
+        
+        context.Harvests.AddRange(
+
+    new Harvest
+    {
+        UserPlantId = janTomatoDb.Id,
+        HarvestDate = new DateTime(2025, 8, 1),
+        Quantity = 2.5m,
+        Unit = "kg",
+        FruitsCount = 40
+    },
+
+    new Harvest
+    {
+        UserPlantId = janBlueberryDb.Id,
+        HarvestDate = new DateTime(2025, 7, 15),
+        Quantity = 1.8m,
+        Unit = "kg"
+    }
+); context.PlantPhotos.AddRange(
+
+    new PlantPhoto
+    {
+        UserPlantId = annaBasilDb.Id,
+        FilePath = "photos/basil_1.jpg",
+        CreatedAt = new DateTime(2025, 5, 15)
+    },
+
+    new PlantPhoto
+    {
+        UserPlantId = janTomatoDb.Id,
+        FilePath = "photos/tomato_1.jpg",
+        CreatedAt = new DateTime(2025, 6, 20)
+    }
+);
+
+        context.SaveChanges();
     }
 }

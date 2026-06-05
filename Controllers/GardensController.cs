@@ -3,11 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Zielnik.Data;
 using Zielnik.DTOs;
 using Zielnik.Entities;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Zielnik.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class GardensController : ControllerBase
     {
         private readonly ZielnikDbContext _context;
@@ -20,36 +23,44 @@ namespace Zielnik.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<GardenDto>> GetGarden(Guid id)
         {
-            // Pobieranie szczegółów jednego ogrodu wraz z roślinami
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
                 .ThenInclude(up => up.Plant)
-                .FirstOrDefaultAsync(g => g.Id == id);
+                .FirstOrDefaultAsync(g =>
+                    g.Id == id &&
+                    g.UserId == userId);
 
             if (garden == null)
             {
                 return NotFound();
             }
 
-            // Mapowanie na bezpieczny format GardenDto
             var gardenDto = new GardenDto
             {
                 Id = garden.Id,
                 Name = garden.Name,
                 Plants = garden.Plants
-    .Select(p => p.Plant.Name)
-    .ToList()
+                    .Select(p => p.Plant.Name)
+                    .ToList()
             };
 
             return Ok(gardenDto);
         }
 
+
         [HttpPost]
         public async Task<ActionResult<GardenDto>> CreateGarden(CreateGardenDto dto)
         {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
             var garden = new Garden
             {
-                Name = dto.Name
+                Name = dto.Name,
+                UserId = userId
             };
 
             _context.Gardens.Add(garden);
@@ -121,8 +132,11 @@ namespace Zielnik.Controllers
         [HttpGet]
         public async Task<ActionResult<List<GardenDto>>> GetGardens()
         {
-            // Pobieranie listy wszystkich ogrodów dla strony głównej
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
             var gardens = await _context.Gardens
+                .Where(g => g.UserId == userId)
                 .Include(g => g.Plants)
                 .ThenInclude(up => up.Plant)
                 .Select(g => new GardenDto

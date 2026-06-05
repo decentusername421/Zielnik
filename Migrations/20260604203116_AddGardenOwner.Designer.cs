@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zielnik.Data;
 
@@ -10,9 +11,11 @@ using Zielnik.Data;
 namespace Zielnik.Migrations
 {
     [DbContext(typeof(ZielnikDbContext))]
-    partial class ZielnikDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260604203116_AddGardenOwner")]
+    partial class AddGardenOwner
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -229,7 +232,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("UserPlantId");
 
-                    b.ToTable("PlantPhotos", (string)null);
+                    b.ToTable("PlantPhotos");
                 });
 
             modelBuilder.Entity("PlantPlantCategory", b =>
@@ -244,7 +247,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("PlantsId");
 
-                    b.ToTable("PlantPlantCategory", (string)null);
+                    b.ToTable("PlantPlantCategory");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.Garden", b =>
@@ -265,7 +268,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Gardens", (string)null);
+                    b.ToTable("Gardens");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.Harvest", b =>
@@ -298,7 +301,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("UserPlantId");
 
-                    b.ToTable("Harvests", (string)null);
+                    b.ToTable("Harvests");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.Plant", b =>
@@ -338,7 +341,7 @@ namespace Zielnik.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Plants", (string)null);
+                    b.ToTable("Plants");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.PlantCategory", b =>
@@ -354,7 +357,7 @@ namespace Zielnik.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PlantCategories", (string)null);
+                    b.ToTable("PlantCategories");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.PlantNote", b =>
@@ -382,7 +385,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("UserPlantId");
 
-                    b.ToTable("PlantNotes", (string)null);
+                    b.ToTable("PlantNotes");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.PlantTreatment", b =>
@@ -417,7 +420,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("UserPlantId");
 
-                    b.ToTable("PlantTreatments", (string)null);
+                    b.ToTable("PlantTreatments");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.UserPlant", b =>
@@ -451,7 +454,7 @@ namespace Zielnik.Migrations
 
                     b.HasIndex("PlantId");
 
-                    b.ToTable("UserPlants", (string)null);
+                    b.ToTable("UserPlants");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

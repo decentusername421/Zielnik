@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Zielnik.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddGardenOwner : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,18 +51,6 @@ namespace Zielnik.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Gardens",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Gardens", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PlantCategories",
                 columns: table => new
                 {
@@ -82,6 +70,9 @@ namespace Zielnik.Migrations
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Species = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     WateringFrequencyDays = table.Column<int>(type: "INTEGER", nullable: false),
+                    FertilizingFrequencyDays = table.Column<int>(type: "INTEGER", nullable: true),
+                    SprayingFrequencyDays = table.Column<int>(type: "INTEGER", nullable: true),
+                    HarvestAfterDays = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     IsCustomPlant = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -190,6 +181,25 @@ namespace Zielnik.Migrations
                     table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Gardens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Gardens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Gardens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -375,6 +385,11 @@ namespace Zielnik.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Gardens_UserId",
+                table: "Gardens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Harvests_UserPlantId",
                 table: "Harvests",
                 column: "UserPlantId");
@@ -447,9 +462,6 @@ namespace Zielnik.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "PlantCategories");
 
             migrationBuilder.DropTable(
@@ -460,6 +472,9 @@ namespace Zielnik.Migrations
 
             migrationBuilder.DropTable(
                 name: "Plants");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }
