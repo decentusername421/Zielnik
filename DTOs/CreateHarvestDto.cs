@@ -2,6 +2,7 @@
 {
     public class CreateHarvestDto
     {
+        public Guid UserPlantId { get; set; }
         public DateTime HarvestDate { get; set; }
 
         public decimal Quantity { get; set; }

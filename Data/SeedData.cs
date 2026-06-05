@@ -55,7 +55,7 @@ public static class SeedData
                 Name = "User",
                 NormalizedName = "USER"
             });
-      
+
         }
 
         context.SaveChanges();
@@ -889,7 +889,7 @@ public static class SeedData
         var rosemary = context.Plants
             .First(p => p.Name == "Rozmaryn lekarski");
 
-     
+
         var blueberry = context.Plants
             .First(p => p.Name == "Bluecrop");
 
@@ -930,7 +930,6 @@ public static class SeedData
             Status = PlantStatus.Active
         };
 
-        
         var janTomato = new UserPlant
         {
             PlantId = blackCherry.Id,
@@ -940,6 +939,9 @@ public static class SeedData
 
             SowingDate = new DateTime(2025, 3, 10),
             PlantingDate = new DateTime(2025, 4, 15),
+
+            HarvestReminderDays = 3,
+            NextHarvestReminder = DateTime.UtcNow.Date.AddDays(1),
 
             Status = PlantStatus.Active
         };
@@ -952,6 +954,9 @@ public static class SeedData
             Nickname = "Borówki",
 
             PlantingDate = new DateTime(2024, 4, 1),
+
+            HarvestReminderDays = 7,
+            NextHarvestReminder = DateTime.UtcNow.Date,
 
             Status = PlantStatus.Active
         };
@@ -978,8 +983,9 @@ public static class SeedData
 
         context.SaveChanges();
 
+
         var annaBasilDb = context.UserPlants
-   .First(up => up.Nickname == "Bazylia balkonowa");
+        .First(up => up.Nickname == "Bazylia balkonowa");
 
         var annaRosemaryDb = context.UserPlants
            .First(up => up.Nickname == "Rozmaryn do kuchni");
@@ -1069,88 +1075,90 @@ public static class SeedData
 
 
 
-        if (!context.PlantNotes.Any())
-        {
-            var tunnelTomato = context.UserPlants
-                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
-
-            var lavender = context.UserPlants
-                .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
-
-            if (tunnelTomato != null)
-            {
-                context.PlantNotes.Add(new PlantNote
-                {
-                    UserPlantId = tunnelTomato.Id,
-                    Title = "Pierwsze kwitnienie",
-                    Content = "Pojawiły się pierwsze kwiaty.",
-                    CreatedAt = DateTime.UtcNow.AddDays(-30)
-                });
-
-                context.PlantNotes.Add(new PlantNote
-                {
-                    UserPlantId = tunnelTomato.Id,
-                    Title = "Dobry wzrost",
-                    Content = "Roślina rozwija się bardzo dobrze.",
-                    CreatedAt = DateTime.UtcNow.AddDays(-15)
-                });
-            }
-
-            if (lavender != null)
-            {
-                context.PlantNotes.Add(new PlantNote
-                {
-                    UserPlantId = lavender.Id,
-                    Title = "Po zimie",
-                    Content = "Lawenda dobrze przezimowała.",
-                    CreatedAt = DateTime.UtcNow.AddDays(-10)
-                });
-            }
-            context.SaveChanges();
-
-        }
         if (!context.PlantTreatments.Any())
+
         {
-            var treatmentTomato = context.UserPlants
-                .FirstOrDefault(up => up.Nickname == "Tunel 2025");
-
             var treatmentLavender = context.UserPlants
-                .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
+             .FirstOrDefault(up => up.Nickname == "Rabata przy wejściu");
 
-            if (treatmentTomato != null)
-            {
-                context.PlantTreatments.AddRange(
-                    new PlantTreatment
-                    {
-                        UserPlantId = treatmentTomato.Id,
-                        TreatmentType = "Nawożenie",
-                        ProductName = "Biohumus",
-                        Quantity = 50,
-                        Unit = "ml",
-                        Notes = "Nawóz organiczny.",
-                        PerformedAt = DateTime.UtcNow.AddDays(-25)
-                    },
-                    new PlantTreatment
-                    {
-                        UserPlantId = treatmentTomato.Id,
-                        TreatmentType = "Oprysk",
-                        ProductName = "Miedzian 50 WP",
-                        Quantity = 10,
-                        Unit = "g",
-                        Notes = "Profilaktyka przeciw chorobom grzybowym.",
-                        PerformedAt = DateTime.UtcNow.AddDays(-18)
-                    },
-                    new PlantTreatment
-                    {
-                        UserPlantId = treatmentTomato.Id,
-                        TreatmentType = "Podlewanie",
-                        Quantity = 5,
-                        Unit = "l",
-                        Notes = "Podlewanie po upalnym dniu.",
-                        PerformedAt = DateTime.UtcNow.AddDays(-2)
-                    }
-                );
-            }
+            context.PlantTreatments.AddRange(
+
+                new PlantTreatment
+                {
+                    UserPlantId = janTomatoDb.Id,
+                    TreatmentType = "Watering",
+                    Quantity = 5,
+                    Unit = "l",
+                    PerformedAt = DateTime.UtcNow.AddDays(-2),
+                    Notes = "Podlewanie po upalnym dniu."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janTomatoDb.Id,
+                    TreatmentType = "Fertilizing",
+                    ProductName = "Biohumus",
+                    Quantity = 50,
+                    Unit = "ml",
+                    PerformedAt = DateTime.UtcNow.AddDays(-15),
+                    Notes = "Nawożenie wspomagające kwitnienie."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janTomatoDb.Id,
+                    TreatmentType = "Spraying",
+                    ProductName = "Miedzian 50 WP",
+                    Quantity = 10,
+                    Unit = "g",
+                    PerformedAt = DateTime.UtcNow.AddDays(-18),
+                    Notes = "Profilaktyka przeciw chorobom grzybowym."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janTomatoDb.Id,
+                    TreatmentType = "Spraying",
+                    ProductName = "Polyversum WP",
+                    PerformedAt = DateTime.UtcNow.AddDays(-8),
+                    Notes = "Oprysk przeciw zarazie ziemniaczanej."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janBlueberryDb.Id,
+                    TreatmentType = "Watering",
+                    PerformedAt = DateTime.UtcNow.AddDays(-4),
+                    Notes = "Podlewanie w okresie dojrzewania owoców."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janBlueberryDb.Id,
+                    TreatmentType = "Spraying",
+                    ProductName = "Emulpar 940 EC",
+                    PerformedAt = DateTime.UtcNow.AddDays(-11),
+                    Notes = "Oprysk przeciw mszycom."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = janBlueberryDb.Id,
+                    TreatmentType = "Spraying",
+                    ProductName = "NeemAzal",
+                    PerformedAt = DateTime.UtcNow.AddDays(-6),
+                    Notes = "Zwalczanie szkodników."
+                },
+
+                new PlantTreatment
+                {
+                    UserPlantId = annaBasilDb.Id,
+                    TreatmentType = "Watering",
+                    PerformedAt = DateTime.UtcNow.AddDays(-2),
+                    Notes = "Regularne podlewanie doniczki balkonowej."
+                }
+
+           );
 
             if (treatmentLavender != null)
             {
@@ -1158,9 +1166,9 @@ public static class SeedData
                     new PlantTreatment
                     {
                         UserPlantId = treatmentLavender.Id,
-                        TreatmentType = "Przycinanie",
-                        Notes = "Usunięto przekwitłe pędy.",
-                        PerformedAt = DateTime.UtcNow.AddDays(-7)
+                        TreatmentType = "Pruning",
+                        PerformedAt = DateTime.UtcNow.AddDays(-7),
+                        Notes = "Usunięto przekwitłe pędy."
                     });
             }
 
@@ -1174,25 +1182,20 @@ public static class SeedData
 
             if (harvestTomato != null)
             {
+                // przypomnienia o zbiorach
+                harvestTomato.HarvestReminderDays = 3;
+                harvestTomato.NextHarvestReminder =
+                    DateTime.UtcNow.Date.AddDays(2);
+
                 context.Harvests.AddRange(
                     new Harvest
                     {
                         UserPlantId = harvestTomato.Id,
-                        HarvestDate = DateTime.UtcNow.AddDays(-20),
-                        Quantity = 2.5m,
-                        Unit = "kg",
-                        FruitsCount = 45,
-                        Notes = "Pierwszy zbiór pomidorów."
-                    },
-
-                    new Harvest
-                    {
-                        UserPlantId = harvestTomato.Id,
-                        HarvestDate = DateTime.UtcNow.AddDays(-3),
+                        HarvestDate = DateTime.UtcNow.AddDays(-30),
                         Quantity = 1.7m,
                         Unit = "kg",
                         FruitsCount = 28,
-                        Notes = "Końcówka sezonu."
+                        Notes = "Pierwszy zbiór dojrzałych owoców Black Cherry."
                     },
                     new Harvest
                     {
@@ -1201,7 +1204,7 @@ public static class SeedData
                         Quantity = 2.5m,
                         Unit = "kg",
                         FruitsCount = 45,
-                        Notes = "Pierwszy zbiór dojrzałych owoców Black Cherry."
+                        Notes = "Regularny zbiór w szczycie sezonu."
                     },
                     new Harvest
                     {
@@ -1215,17 +1218,50 @@ public static class SeedData
                     new Harvest
                     {
                         UserPlantId = harvestTomato.Id,
-                        HarvestDate = DateTime.UtcNow.AddDays(-30),
+                        HarvestDate = DateTime.UtcNow.AddDays(-3),
                         Quantity = 1.7m,
                         Unit = "kg",
                         FruitsCount = 28,
-                        Notes = "Końcowy zbiór przed usunięciem roślin."
+                        Notes = "Końcówka sezonu."
+                    }
+                );
+            }
+
+
+            var blueberryPlant = context.UserPlants
+                .FirstOrDefault(up => up.Nickname == "Borówki");
+
+            if (blueberryPlant != null)
+            {
+                blueberryPlant.HarvestReminderDays = 7;
+                blueberryPlant.NextHarvestReminder =
+                    DateTime.UtcNow.Date.AddDays(5);
+
+                context.Harvests.AddRange(
+                    new Harvest
+                    {
+                        UserPlantId = blueberryPlant.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-14),
+                        Quantity = 0.6m,
+                        Unit = "kg",
+                        FruitsCount = 180,
+                        Notes = "Pierwszy zbiór borówek."
+                    },
+                    new Harvest
+                    {
+                        UserPlantId = blueberryPlant.Id,
+                        HarvestDate = DateTime.UtcNow.AddDays(-7),
+                        Quantity = 0.9m,
+                        Unit = "kg",
+                        FruitsCount = 260,
+                        Notes = "Najlepszy zbiór w sezonie."
                     }
                 );
             }
 
             context.SaveChanges();
         }
+    
 
         context.PlantNotes.AddRange(
 

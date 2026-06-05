@@ -11,5 +11,7 @@
         public DateTime? PlantingDate { get; set; }
 
         public string? Nickname { get; set; }
+
+        public int? HarvestReminderDays { get; set; }
     }
 }
