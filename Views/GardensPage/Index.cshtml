@@ -23,106 +23,36 @@
 <div id="list">Ładowanie listy ogrodów...</div>
 
 <script>
-    // Pobieranie wszystkich ogrodów z API i wyświetlanie ich na stronie
     function loadGardens() {
-        fetch('/api/Gardens')
-            .then(response => {
-                if (!response.ok) throw new Error("Błąd serwera: " + response.status);
-                return response.json();
-            })
-            .then(data => {
-                if (data.length === 0) {
-                    document.getElementById('list').innerHTML = '<p style="color:gray;">Brak utworzonych ogrodów. Dodaj swój pierwszy ogród powyżej!</p>';
-                    return;
-                }
-
-                // Mapowanie danych na elementy HTML listy ogrodów
-                document.getElementById('list').innerHTML = data.map(g => `
-                    <div style="background: white; border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <div>
-                            <h3 style="margin: 0 0 5px 0; color: #0d47a1;">🏡 ${g.name}</h3>
-                            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #555;">
-                                🌱 Liczba roślin w ogrodzie: <b>${g.plants ? g.plants.length : 0}</b>
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="window.location='/GardensPage/Details/${g.id}'" style="background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                                🔍 Szczegóły i Edycja
-                            </button>
-                            <button onclick="deleteGarden('${g.id}')" style="background: #ff4d4d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                                🗑 Usuń
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            })
-            .catch(error => {
-                document.getElementById('list').innerHTML = '<p style="color:red; font-weight:bold;">❌ Błąd pobierania danych.</p>';
-                console.error(error);
-            });
-    }
-
-    // Tworzenie nowego ogrodu i wysyłanie danych do API
-    function createNewGarden() {
-        const nameInput = document.getElementById('gardenName').value.trim();
-
-        if (!nameInput) {
-            alert("Proszę podać nazwę ogrodu!");
-            return;
-        }
-
-        // Przygotowanie obiektu danych dla backendu
-        const newGardenData = {
-            name: nameInput,
-            plants: []
-        };
+        const token = localStorage.getItem('jwtToken');
+        const container = document.getElementById('list');
 
         fetch('/api/Gardens', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newGardenData)
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
         })
         .then(response => {
-            if (!response.ok) throw new Error("Nie udało się zapisać ogrodu.");
-
-            // Czyszczenie pola tekstowego po pomyślnym dodaniu
-            document.getElementById('gardenName').value = "";
-
-            // Wyświetlenie powiadomienia o sukcesie na 3 sekundy
-            const msgBlock = document.getElementById('successMessage');
-            msgBlock.style.display = 'block';
-            setTimeout(() => {
-                msgBlock.style.display = 'none';
-            }, 3000);
-
-            // Odświeżenie listy ogrodów na stronie
-            loadGardens();
+            if (response.status === 401) throw new Error("Brak uprawnień. Zaloguj się!");
+            if (!response.ok) throw new Error("Błąd serwera: " + response.status);
+            return response.json();
+        })
+        .then(data => {
+           
+            container.innerHTML = data.map(g => `
+                <div style="padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 8px;">
+                    <h3>🌳 ${g.name}</h3>
+                    <a href="/GardensPage/Details/${g.id}">Zobacz szczegóły</a>
+                </div>
+            `).join('');
         })
         .catch(error => {
-            alert("Błąd podczas dodawania ogrodu: " + error.message);
+            container.innerHTML = `<p style="color:red;">❌ ${error.message}</p>`;
             console.error(error);
         });
     }
 
-    // Usuwanie ogrodu z bazy danych na podstawie identyfikatora ID
-    function deleteGarden(id) {
-        if (!confirm("Czy na pewno chcesz usunąć ten ogród wraz z zawartością?")) {
-            return;
-        }
-
-        fetch(`/api/Gardens/${id}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (!response.ok) throw new Error("Nie udało się usunąć ogrodu.");
-            loadGardens();
-        })
-        .catch(error => {
-            alert("Błąd podczas usuwania ogrodu: " + error.message);
-            console.error(error);
-        });
-    }
-
-    // Wywołanie funkcji pobierającej dane przy starcie strony
     loadGardens();
 </script>
