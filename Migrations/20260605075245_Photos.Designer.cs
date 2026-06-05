@@ -11,8 +11,8 @@ using Zielnik.Data;
 namespace Zielnik.Migrations
 {
     [DbContext(typeof(ZielnikDbContext))]
-    [Migration("20260604173427_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260605075245_Photos")]
+    partial class Photos
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -261,7 +261,12 @@ namespace Zielnik.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Gardens");
                 });
@@ -309,6 +314,12 @@ namespace Zielnik.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("FertilizingFrequencyDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("HarvestAfterDays")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsCustomPlant")
                         .HasColumnType("INTEGER");
 
@@ -321,6 +332,9 @@ namespace Zielnik.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("SprayingFrequencyDays")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("WateringFrequencyDays")
                         .HasColumnType("INTEGER");
@@ -518,6 +532,16 @@ namespace Zielnik.Migrations
                         .HasForeignKey("PlantsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Zielnik.Entities.Garden", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Zielnik.Entities.Harvest", b =>

@@ -62,6 +62,12 @@ namespace Zielnik.Data
             modelBuilder.Entity<UserPlant>()
                 .Property(x => x.PlantingDate)
                 .HasColumnType("date");
+
+            modelBuilder.Entity<Garden>()
+                .HasOne(g => g.User)
+                .WithMany()
+                .HasForeignKey(g => g.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
