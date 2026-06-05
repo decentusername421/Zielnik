@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Zielnik.Data;
 using System.Security.Claims;
+using Zielnik.Data;
+using Zielnik.Entities;
 
 
 namespace Zielnik.Controllers
@@ -30,6 +31,7 @@ namespace Zielnik.Controllers
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
                 .Include(up => up.Garden)
+                .Include(up => up.Treatments)
                 .Where(up => up.Garden.UserId == userId)
                 .ToListAsync();
 
@@ -44,53 +46,78 @@ namespace Zielnik.Controllers
 
                 // Watering
                 if (plant.Plant.WateringFrequencyDays > 0 &&
-                    days % plant.Plant.WateringFrequencyDays == 0)
+                   days % plant.Plant.WateringFrequencyDays == 0)
                 {
-                    tasks.Add(new
+                    var alreadyDone = plant.Treatments.Any(t =>
+                        t.TreatmentType == "Watering" &&
+                        t.PerformedAt.Date == today);
+
+                    if (!alreadyDone)
                     {
-                        Plant = plant.Plant.Name,
-                        Nickname = plant.Nickname,
-                        Task = "Watering",
-                        DueDate = today
-                    });
+                        tasks.Add(new
+                        {
+                            PlantId = plant.Id,
+                            Plant = plant.Plant.Name,
+                            Nickname = plant.Nickname,
+                            Task = "Watering",
+                            DueDate = today
+                        });
+                    }
                 }
 
                 // Fertilizing
                 if (plant.Plant.FertilizingFrequencyDays > 0 &&
                     days % plant.Plant.FertilizingFrequencyDays == 0)
                 {
-                    tasks.Add(new
+                    var alreadyDone = plant.Treatments.Any(t =>
+                        t.TreatmentType == "Fertilizing" &&
+                        t.PerformedAt.Date == today);
+
+                    if (!alreadyDone)
                     {
-                        Plant = plant.Plant.Name,
-                        Nickname = plant.Nickname,
-                        Task = "Fertilizing",
-                        DueDate = today
-                    });
+                        tasks.Add(new
+                        {
+                            PlantId = plant.Id,
+                            Plant = plant.Plant.Name,
+                            Nickname = plant.Nickname,
+                            Task = "Fertilizing",
+                            DueDate = today
+                        });
+                    }
                 }
 
                 // Spraying
                 if (plant.Plant.SprayingFrequencyDays > 0 &&
                     days % plant.Plant.SprayingFrequencyDays == 0)
                 {
-                    tasks.Add(new
+                    var alreadyDone = plant.Treatments.Any(t =>
+                        t.TreatmentType == "Spraying" &&
+                        t.PerformedAt.Date == today);
+
+                    if (!alreadyDone)
                     {
-                        Plant = plant.Plant.Name,
-                        Nickname = plant.Nickname,
-                        Task = "Spraying",
-                        DueDate = today
-                    });
+                        tasks.Add(new
+                        {
+                            PlantId = plant.Id,
+                            Plant = plant.Plant.Name,
+                            Nickname = plant.Nickname,
+                            Task = "Spraying",
+                            DueDate = today
+                        });
+                    }
                 }
 
                 // Harvest
-                if (plant.Plant.HarvestAfterDays > 0 &&
-                    days >= plant.Plant.HarvestAfterDays)
+                if (plant.NextHarvestReminder.HasValue &&
+                plant.NextHarvestReminder.Value.Date <= today)
                 {
                     tasks.Add(new
                     {
+                        PlantId = plant.Id,
                         Plant = plant.Plant.Name,
                         Nickname = plant.Nickname,
                         Task = "Harvest",
-                        DueDate = today
+                        DueDate = plant.NextHarvestReminder.Value.Date
                     });
                 }
             }
@@ -103,7 +130,7 @@ namespace Zielnik.Controllers
         public async Task<IActionResult> GetNotifications()
         {
             var userId = User.FindFirstValue(
-    ClaimTypes.NameIdentifier);
+            ClaimTypes.NameIdentifier);
             var today = DateTime.UtcNow.Date;
 
             var plants = await _context.UserPlants
@@ -217,6 +244,43 @@ namespace Zielnik.Controllers
                 ((DateTime)t.GetType()
                     .GetProperty("DueDate")!
                     .GetValue(t)!)));
+        }
+
+        [HttpPost("complete")]
+        public async Task<IActionResult> CompleteTask(
+    CompleteTaskDto dto)
+        {
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            var plant = await _context.UserPlants
+                .Include(x => x.Garden)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == dto.UserPlantId &&
+                    x.Garden.UserId == userId);
+
+            if (plant == null)
+                return NotFound();
+
+            if (dto.TaskType == "Harvest")
+            {
+                return BadRequest(
+                    "Harvest should be created via HarvestsController");
+            }
+
+            var treatment = new PlantTreatment
+            {
+                UserPlantId = dto.UserPlantId,
+                TreatmentType = dto.TaskType,
+                Notes = dto.Notes,
+                PerformedAt = DateTime.UtcNow
+            };
+
+            _context.PlantTreatments.Add(treatment);
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }
