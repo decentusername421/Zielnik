@@ -29,6 +29,7 @@ namespace Zielnik.Controllers
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
                 .Include(up => up.Garden)
+                .Include(up => up.Treatments)
                 .Where(up => up.Garden.UserId == userId)
                 .ToListAsync();
 
@@ -40,15 +41,26 @@ namespace Zielnik.Controllers
                 var days = (today - plant.PlantingDate.Value.Date).Days;
 
                 if (plant.Plant.WateringFrequencyDays > 0 && days % plant.Plant.WateringFrequencyDays == 0)
-                    tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Watering", dueDate = today });
+                {
+                    var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Watering" && t.PerformedAt.Date == today);
+                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Watering", dueDate = today });
+                }
                 if (plant.Plant.FertilizingFrequencyDays > 0 && days % plant.Plant.FertilizingFrequencyDays == 0)
-                    tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Fertilizing", dueDate = today });
+                {
+                    var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Fertilizing" && t.PerformedAt.Date == today);
+                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Fertilizing", dueDate = today });
+                }
                 if (plant.Plant.SprayingFrequencyDays > 0 && days % plant.Plant.SprayingFrequencyDays == 0)
-                    tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Spraying", dueDate = today });
+                {
+                    var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Spraying" && t.PerformedAt.Date == today);
+                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Spraying", dueDate = today });
+                }
                 if (plant.Plant.HarvestAfterDays > 0 && days >= plant.Plant.HarvestAfterDays)
-                    tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Harvest", dueDate = today });
+                {
+                    var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Harvest" && t.PerformedAt.Date == today);
+                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Harvest", dueDate = today });
+                }
             }
-
             return Ok(tasks);
         }
 
@@ -57,7 +69,6 @@ namespace Zielnik.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var today = DateTime.UtcNow.Date;
-
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
                 .Include(up => up.Garden)
@@ -165,7 +176,7 @@ namespace Zielnik.Controllers
                 Id = Guid.NewGuid(),
                 UserPlantId = userPlantId,
                 TreatmentType = taskType,
-                PerformedAt = dueDate // Zapisujemy datę wybraną przez użytkownika
+                PerformedAt = dueDate
             };
 
             _context.PlantTreatments.Add(treatment);
@@ -177,7 +188,6 @@ namespace Zielnik.Controllers
         public async Task<IActionResult> GetTaskHistory()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var history = await _context.PlantTreatments
                 .Include(t => t.UserPlant)
                 .ThenInclude(up => up.Plant)

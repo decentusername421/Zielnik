@@ -39,7 +39,9 @@ namespace Zielnik.Controllers
                 SowingDate = dto.SowingDate,
                 PlantingDate = dto.PlantingDate,
                 Nickname = dto.Nickname,
-                Status = PlantStatus.Active
+                Status = PlantStatus.Active,
+                HarvestReminderDays = dto.HarvestReminderDays
+
             };
 
             _context.UserPlants.Add(userPlant);
@@ -208,5 +210,7 @@ namespace Zielnik.Controllers
                 TotalHarvest = plant.Harvests.Sum(h => h.Quantity)
             });
         }
+
+
     }
 }

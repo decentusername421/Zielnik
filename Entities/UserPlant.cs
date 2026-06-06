@@ -33,5 +33,9 @@ namespace Zielnik.Entities
         public List<Harvest> Harvests { get; set; } = new();
 
         public List<PlantPhoto> Photos { get; set; } = new();
+
+        public DateTime? NextHarvestReminder { get; set; }
+
+        public int? HarvestReminderDays { get; set; }
     }
 }
