@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "Harmonogram";
+}
+
+<div style="font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
+    <h1 style="color: #f57c00;">📅 Harmonogram zadań</h1>
+
+    <h3>Do zrobienia dzisiaj:</h3>
+    <ul id="tasks-list"><li>Ładowanie zadań...</li></ul>
+
+    <hr />
+
+    <h3>Dodaj zadanie:</h3>
+    <div id="manual-task-form">
+        <select id="plantSelect" style="padding: 5px;"></select>
+        <select id="taskTypeSelect" style="padding: 5px;">
+            <option value="Watering">Podlewanie</option>
+            <option value="Fertilizing">Nawożenie</option>
+            <option value="Spraying">Oprysk</option>
+            <option value="Harvest">Zbiory</option>
+        </select>
+        <input type="date" id="dueDateInput" style="padding: 5px;" />
+        <button onclick="addManualTask()" style="padding: 5px; background: #2e7d32; color: white; border: none;">Dodaj</button>
+    </div>
+
+    <hr />
+
+    <h3>Ostatnio wykonane prace:</h3>
+    <ul id="history-list"><li>Ładowanie historii...</li></ul>
+</div>
+
+<script>
+    const token = localStorage.getItem('jwtToken');
+
+    function loadData() {
+        // 1. Pobierz listę roślin do selecta
+        fetch('/api/UserPlants', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(plants => {
+                const select = document.getElementById('plantSelect');
+                select.innerHTML = plants.map(p => `<option value="${p.id}">${p.nickname || p.plant.name}</option>`).join('');
+            });
+
+        // 2. Pobierz zadania na dziś
+        fetch('/api/Tasks/today', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(tasks => {
+                const container = document.getElementById('tasks-list');
+                container.innerHTML = tasks.length > 0
+                    ? tasks.map(t => `<li><strong>${t.plantName}</strong> - ${t.taskType} <button onclick="completeTask('${t.userPlantId}', '${t.taskType}')">Wykonano</button></li>`).join('')
+                    : '<li>Brak zadań na dzisiaj!</li>';
+            });
+
+        // 3. Pobierz historię
+        fetch('/api/Tasks/history', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(history => {
+                const hList = document.getElementById('history-list');
+                hList.innerHTML = history.length > 0
+                    ? history.map(h => `<li>${h.plantName} - ${h.type} (${new Date(h.date).toLocaleDateString()})</li>`).join('')
+                    : '<li>Brak historii.</li>';
+            });
+    }
+
+    function completeTask(userPlantId, taskType) {
+        fetch('/api/Tasks/complete', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userPlantId: userPlantId, taskType: taskType })
+        }).then(() => loadData());
+    }
+
+    function addManualTask() {
+        const userPlantId = document.getElementById('plantSelect').value;
+        const taskType = document.getElementById('taskTypeSelect').value;
+        const dueDate = document.getElementById('dueDateInput').value;
+
+        if (!dueDate) {
+            alert("Proszę wybrać datę!");
+            return;
+        }
+
+        fetch('/api/Tasks/add-manual', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userPlantId: userPlantId, taskType: taskType, dueDate: dueDate })
+        }).then(r => {
+            if (r.ok) {
+                alert('Zadanie dodane!');
+                loadData();
+            } else {
+                alert('Błąd przy dodawaniu.');
+            }
+        });
+    }
+
+    loadData();
+</script>

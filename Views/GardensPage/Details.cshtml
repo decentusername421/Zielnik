@@ -1,50 +1,119 @@
 ﻿<h1>🌿 Szczegóły ogrodu</h1>
 <div id="garden">Ładowanie...</div>
 
+<h2>🌱 Rośliny w tym ogrodzie</h2>
+<div id="my-plants-list">Ładowanie Twoich roślin...</div>
+
 <hr>
-<h2>➕ Posadź roślinę</h2>
-<label><b>Filtruj według gatunku:</b></label>
+<h2>➕ Posadź nową roślinę</h2>
+<label><b>Filtruj według kategorii:</b></label>
 <br>
-<select id="categorySelect" onchange="filterPlants()" style="width: 100%; max-width: 300px; padding: 8px;">
+<select id="categorySelect" onchange="filterPlants()" style="width: 100%; max-width: 300px; padding: 8px; margin-bottom: 15px;">
     <option value="all">⭐ Wszystkie</option>
 </select>
 
-<div id="plants-list">Ładowanie roślin...</div>
+<div id="plants-list">Ładowanie bazy roślin...</div>
 
 <script>
-    const gardenId = window.location.pathname.split('/').pop(); // Pobiera ID z URL
+    const gardenId = window.location.pathname.split('/').pop();
     const token = localStorage.getItem('jwtToken');
 
-    // 1. Ładowanie szczegółów ogrodu
+    // Funkcja pobierająca rośliny już posadzone w tym ogrodzie
+    function loadMyPlants() {
+        fetch('/api/UserPlants', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(data => {
+            const myPlants = data.filter(p => p.gardenId == gardenId);
+            document.getElementById('my-plants-list').innerHTML = myPlants.length > 0
+                ? myPlants.map(p => `
+                    <div style="border-bottom:1px solid #eee; padding:5px; display:flex; justify-content:space-between;">
+                        <span>✅ ${p.nickname}</span>
+                        <button onclick="removePlant('${p.id}')" style="background:#d32f2f; color:white; border:none; padding:2px 8px; cursor:pointer;">Usuń</button>
+                    </div>`).join('')
+                : '<div>Brak posadzonych roślin.</div>';
+        });
+    }
+
+    // Funkcja usuwająca roślinę z ogrodu
+    function removePlant(userPlantId) {
+        if(!confirm("Czy na pewno chcesz usunąć tę roślinę z ogrodu?")) return;
+
+        fetch(`/api/UserPlants/${userPlantId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => {
+            if (r.ok) {
+                loadMyPlants();
+            } else {
+                alert("Błąd przy usuwaniu.");
+            }
+        });
+    }
+
+    // Pobranie danych ogrodu
     fetch(`/api/Gardens/${gardenId}`, { headers: { 'Authorization': 'Bearer ' + token } })
     .then(r => r.json())
-    .then(g => {
-        document.getElementById('garden').innerHTML = `<h3>${g.name}</h3>`;
-    });
+    .then(g => document.getElementById('garden').innerHTML = `<h3>${g.name}</h3>`);
 
-    // 2. Pobieranie roślin i unikalnych gatunków do filtra
+    // Pobranie bazy roślin
     fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + token } })
     .then(r => r.json())
     .then(data => {
-        window.allPlants = data; // Zapisujemy globalnie do filtra
-        const species = [...new Set(data.map(p => p.species))];
+        window.allPlants = data;
+        renderPlants(data);
+    });
+
+    // Pobranie kategorii
+    fetch('/api/PlantCategories', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(categories => {
         const select = document.getElementById('categorySelect');
         select.innerHTML = '<option value="all">⭐ Wszystkie</option>' +
-                           species.map(s => `<option value="${s}">${s}</option>`).join('');
-        renderPlants(data);
+            categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     });
 
     function renderPlants(plants) {
         document.getElementById('plants-list').innerHTML = plants.map(p => `
-            <div style="border:1px solid #ddd; padding:10px; margin:5px;">
-                ${p.name} (${p.species})
+            <div style="border:1px solid #ddd; padding:10px; margin:5px; display:flex; justify-content:space-between;">
+                <span>${p.name}</span>
+                <button onclick="plantSeed('${p.id}', '${p.name}')" style="background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer;">Posadź</button>
             </div>
         `).join('');
     }
 
+    function plantSeed(plantId, plantName) {
+        const data = {
+            gardenId: gardenId,
+            plantId: plantId,
+            nickname: plantName + " (własna)",
+            sowingDate: new Date().toISOString(),
+            plantingDate: new Date().toISOString()
+        };
+
+        fetch('/api/UserPlants', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => {
+            if (r.ok) {
+                alert("Roślina została posadzona!");
+                loadMyPlants();
+            } else {
+                alert("Błąd przy sadzeniu.");
+            }
+        });
+    }
+
     function filterPlants() {
         const val = document.getElementById('categorySelect').value;
-        const filtered = val === 'all' ? window.allPlants : window.allPlants.filter(p => p.species === val);
+        const filtered = (val === 'all')
+            ? window.allPlants
+            : window.allPlants.filter(p => p.categories && p.categories.includes(val));
         renderPlants(filtered);
     }
+
+    // Wywołanie przy starcie
+    loadMyPlants();
 </script>
