@@ -7,12 +7,47 @@
 </head>
 
 <body style="margin:0; font-family:Arial;">
-    <nav style="background:#2d6a4f; padding:10px;">
-        <a href="/Home/Index" style="color:white; margin-right:15px;">🏠 Home</a>
-        <a href="/GardensPage/Index" style="color:white; margin-right:15px;">🌿 Gardens</a>
-        <a href="/PlantsPage/Index" style="color:white;">🌱 Plants</a>
+
+    <nav style="background:#2d6a4f; padding:15px; display:flex; align-items:center; position:relative;">
+        <div style="flex-grow: 1;">
+            <a href="/Home/Index" style="color:white; margin-right:15px; text-decoration:none;">🏠 Home</a>
+            <a href="/GardensPage/Index" style="color:white; margin-right:15px; text-decoration:none;">🌿 Gardens</a>
+            <a href="/PlantsPage/Index" style="color:white; text-decoration:none;">🌱 Plants</a>
+        </div>
+
+        <div id="auth-buttons" style="display: flex; gap: 10px;">
+            <a id="login-btn" href="/Account/Login" style="display: none; background: #fff; color: #2d6a4f; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                Zaloguj
+            </a>
+
+            <button id="logout-btn" onclick="logout()" style="display: none; background: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                Wyloguj
+            </button>
+        </div>
     </nav>
-    @RenderBody()
+
+    <div style="padding: 20px;">
+        @RenderBody()
+    </div>
+
+    <script>
+        // Sprawdzamy status logowania przy każdym załadowaniu strony
+        const token = localStorage.getItem('jwtToken');
+
+        if (token) {
+            // Jeśli jest token, pokazujemy przycisk Wyloguj
+            document.getElementById('logout-btn').style.display = 'block';
+        } else {
+            // Jeśli nie ma tokena, pokazujemy przycisk Zaloguj
+            document.getElementById('login-btn').style.display = 'block';
+        }
+
+        // Funkcja wylogowania
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/Home/Index'; // Powrót na stronę główną
+        }
+    </script>
 
 </body>
 </html>

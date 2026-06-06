@@ -19,6 +19,12 @@
         </select>
     </div>
 
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 20px; max-width: 500px;">
+        <h4 style="color: #2e7d32; margin-top: 0;">➕ Dodaj nową kategorię</h4>
+        <input type="text" id="newCategoryName" placeholder="Nazwa kategorii" style="width: 70%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        <button onclick="addCategory()" style="background: #2e7d32; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer;">Dodaj</button>
+    </div>
+
     <div style="margin-bottom: 15px;">
         <label><b>Podlewanie (co ile dni):</b></label><br>
         <input type="number" id="plantWatering" value="2" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
@@ -31,7 +37,34 @@
 <div id="list">Ładowanie...</div>
 
 <script>
-    // 1. Pobierz listę roślin, żeby wyciągnąć z nich unikalne gatunki (Species)
+
+        // Dodawanie nowej kategorii
+    function addCategory() {
+        const categoryName = document.getElementById('newCategoryName').value;
+
+        if (!categoryName) return alert("Podaj nazwę kategorii!");
+
+        fetch('/api/PlantCategories', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: categoryName })
+        })
+        .then(r => {
+            if (r.ok) {
+                alert("Kategoria dodana pomyślnie!");
+                document.getElementById('newCategoryName').value = ''; // Wyczyść pole
+                // Opcjonalnie: odśwież listę kategorii, jeśli masz ją na stronie
+            } else if (r.status === 403) {
+                alert("Błąd: Nie masz uprawnień administratora.");
+            } else {
+                alert("Wystąpił błąd przy dodawaniu kategorii.");
+            }
+        });
+    }
+    //  Pobierz listę roślin, żeby wyciągnąć z nich unikalne gatunki (Species)
     function loadSpecies() {
         fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') } })
         .then(r => r.json())
