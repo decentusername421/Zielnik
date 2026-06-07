@@ -1,0 +1,371 @@
+﻿@{
+    ViewData["Title"] = "Harmonogram";
+}
+
+<style>
+    .task-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .task-item {
+        border: 1px solid #e0e0e0;
+        border-left: 4px solid #f57c00;
+        border-radius: 6px;
+        padding: 12px 14px;
+        background: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .task-actions button {
+        border: none;
+        border-radius: 4px;
+        padding: 6px 9px;
+        cursor: pointer;
+    }
+
+    #manual-task-form {
+        display: grid;
+        grid-template-columns: minmax(180px, 1.3fr) minmax(150px, 1fr) minmax(150px, 1fr) auto auto;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #manual-task-form select,
+    #manual-task-form input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .task-form-panel {
+        background: #fff8e1;
+        border: 1px solid #ffe0b2;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 22px;
+    }
+
+    .task-form-panel h3 {
+        margin: 0 0 12px;
+        color: #e65100;
+    }
+
+    .task-columns {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        align-items: start;
+    }
+
+    .task-column {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 14px;
+        background: #fafafa;
+        min-width: 0;
+    }
+
+    .task-column h3 {
+        min-height: 48px;
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+        color: #444;
+    }
+
+    .task-column .task-list {
+        max-height: 620px;
+        overflow-y: auto;
+        padding-right: 3px;
+    }
+
+    .task-column .task-item {
+        align-items: flex-start;
+    }
+
+    @@media (max-width: 1050px) {
+        .task-columns {
+            grid-template-columns: 1fr;
+        }
+
+        .task-column h3 {
+            min-height: auto;
+        }
+
+        .task-column .task-list {
+            max-height: none;
+        }
+
+        #manual-task-form {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 600px) {
+        #manual-task-form {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div style="font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 1450px; margin: 0 auto;">
+    <h1 style="color: #f57c00;">📅 Harmonogram zadań</h1>
+
+    <div class="task-form-panel">
+        <h3>Dodaj zadanie:</h3>
+        <div id="manual-task-form">
+            <select id="plantSelect" style="padding: 8px;"></select>
+            <select id="taskTypeSelect" style="padding: 8px;">
+                <option value="Watering">Podlewanie</option>
+                <option value="Fertilizing">Nawożenie</option>
+                <option value="Spraying">Oprysk</option>
+                <option value="Harvest">Zbiory</option>
+            </select>
+            <input type="date" id="dueDateInput" style="padding: 8px;" />
+            <button id="saveTaskButton" onclick="saveManualTask()" style="padding: 8px 14px; background: #2e7d32; color: white; border: none; border-radius:4px; cursor:pointer;">Dodaj</button>
+            <button id="cancelEditButton" onclick="cancelTaskEdit()" style="display:none; padding: 8px 14px; background: #777; color: white; border: none; border-radius:4px; cursor:pointer;">Anuluj</button>
+        </div>
+    </div>
+
+    <div class="task-columns">
+        <section class="task-column">
+            <h3>Do zrobienia dzisiaj:</h3>
+            <ul id="tasks-list" class="task-list"><li>Ładowanie zadań...</li></ul>
+        </section>
+        <section class="task-column">
+            <h3>Wszystkie zaplanowane zadania (najbliższe 30 dni):</h3>
+            <ul id="upcoming-list" class="task-list"><li>Ładowanie zadań...</li></ul>
+        </section>
+        <section class="task-column">
+            <h3>Ostatnio wykonane prace:</h3>
+            <ul id="history-list" class="task-list"><li>Ładowanie historii...</li></ul>
+        </section>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('jwtToken');
+    let editingTaskId = null;
+    let editingAutomaticTask = null;
+
+    // Widok łączy zadania automatycznie wyliczone przez backend z zadaniami ręcznymi.
+    function loadData() {
+        // Nasadzenia użytkownika są potrzebne do formularza ręcznego zadania.
+        fetch('/api/UserPlants', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(plants => {
+                const select = document.getElementById('plantSelect');
+                select.innerHTML = plants.length > 0
+                    ? plants.map(p => `<option value="${p.id}">${p.nickname || p.plantName}</option>`).join('')
+                    : '<option value="">Najpierw dodaj roślinę do ogrodu</option>';
+            });
+
+        // Zadania na dziś można od razu oznaczyć jako wykonane.
+        fetch('/api/Tasks/today', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(tasks => {
+                const container = document.getElementById('tasks-list');
+                container.innerHTML = tasks.length > 0
+                    ? tasks.map(t => `<li class="task-item">
+                        <span><strong>${t.plantName}</strong> - ${t.taskType}</span>
+                        <span class="task-actions">
+                            <button onclick="completeTask('${t.id || ''}', '${t.userPlantId}', '${t.taskType}')" style="background:#2e7d32;color:white;">Wykonano</button>
+                            ${t.isManual ? manualTaskButtons(t) : automaticTaskButtons({
+                                userPlantId: t.userPlantId,
+                                taskType: t.taskType,
+                                dueDate: t.dueDate
+                            })}
+                        </span>
+                    </li>`).join('')
+                    : '<li>Brak zadań na dzisiaj!</li>';
+            });
+
+        // Szerszy harmonogram pokazuje automatyczne terminy i zapisane zadania ręczne.
+        fetch('/api/Tasks/upcoming?days=30', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(tasks => {
+                const container = document.getElementById('upcoming-list');
+                container.innerHTML = tasks.length > 0
+                    ? tasks.map(t => `<li class="task-item">
+                        <span><strong>${t.plantName}</strong> - ${t.task} (${new Date(t.dueDate).toLocaleDateString()})</span>
+                        <span class="task-actions">
+                        ${t.isManual ? manualTaskButtons({
+                            id: t.id,
+                            userPlantId: t.plantId,
+                            taskType: t.task,
+                            dueDate: t.dueDate
+                        }) : automaticTaskButtons({
+                            userPlantId: t.plantId,
+                            taskType: t.task,
+                            dueDate: t.dueDate
+                        })}
+                        </span>
+                    </li>`).join('')
+                    : '<li>Brak zaplanowanych zadań.</li>';
+            });
+
+        // Historia zawiera tylko wykonane prace, bez pozycji nadal zaplanowanych.
+        fetch('/api/Tasks/history', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(history => {
+                const hList = document.getElementById('history-list');
+                hList.innerHTML = history.length > 0
+                    ? history.map(h => `<li class="task-item"><span>${h.plantName} - ${h.type}</span><span>${new Date(h.date).toLocaleDateString()}</span></li>`).join('')
+                    : '<li>Brak historii.</li>';
+            });
+    }
+
+    function manualTaskButtons(task) {
+        // Edycja i usuwanie dotyczą wyłącznie zadań ręcznie zapisanych w bazie.
+        return `
+            <button onclick="editTask('${task.id}', '${task.userPlantId}', '${task.taskType}', '${String(task.dueDate).substring(0, 10)}')" style="background:#0d47a1;color:white;">Edytuj</button>
+            <button onclick="deleteTask('${task.id}')" style="background:#d32f2f;color:white;">Usuń</button>
+        `;
+    }
+
+    function automaticTaskButtons(task) {
+        return `
+            <button onclick="editAutomaticTask('${task.userPlantId}', '${task.taskType}', '${String(task.dueDate).substring(0, 10)}')" style="background:#0d47a1;color:white;">Edytuj</button>
+            <button onclick="deleteAutomaticTask('${task.userPlantId}', '${task.taskType}', '${String(task.dueDate).substring(0, 10)}')" style="background:#d32f2f;color:white;">Usuń</button>
+        `;
+    }
+
+    function completeTask(taskId, userPlantId, taskType) {
+        fetch('/api/Tasks/complete', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskId: taskId || null, userPlantId, taskType })
+        }).then(() => loadData());
+    }
+
+    function saveManualTask() {
+        const userPlantId = document.getElementById('plantSelect').value;
+        const taskType = document.getElementById('taskTypeSelect').value;
+        const dueDate = document.getElementById('dueDateInput').value;
+
+        if (!userPlantId) {
+            alert("Najpierw dodaj roślinę do swojego ogrodu.");
+            return;
+        }
+
+        if (!dueDate) {
+            alert("Proszę wybrać datę!");
+            return;
+        }
+
+        if (editingAutomaticTask) {
+            fetch('/api/Tasks/reschedule-automatic', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userPlantId: editingAutomaticTask.userPlantId,
+                    taskType: editingAutomaticTask.taskType,
+                    dueDate: editingAutomaticTask.dueDate,
+                    newDueDate: dueDate
+                })
+            })
+            .then(r => {
+                if (!r.ok) throw new Error();
+                cancelTaskEdit();
+                loadData();
+            })
+            .catch(() => alert("Nie udało się przełożyć zadania."));
+            return;
+        }
+
+        // Ten sam formularz obsługuje tworzenie (POST) i aktualizację (PUT).
+        const url = editingTaskId ? `/api/Tasks/${editingTaskId}` : '/api/Tasks/add-manual';
+
+        fetch(url, {
+            method: editingTaskId ? 'PUT' : 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userPlantId: userPlantId, taskType: taskType, dueDate: dueDate })
+        }).then(r => {
+            if (r.ok) {
+                alert(editingTaskId ? 'Zadanie zmienione!' : 'Zadanie dodane!');
+                cancelTaskEdit();
+                loadData();
+            } else {
+                alert('Błąd przy dodawaniu.');
+            }
+        });
+    }
+
+    function editTask(id, userPlantId, taskType, dueDate) {
+        editingTaskId = id;
+        editingAutomaticTask = null;
+        document.getElementById('plantSelect').value = userPlantId;
+        document.getElementById('taskTypeSelect').value = taskType;
+        document.getElementById('dueDateInput').value = dueDate;
+        document.getElementById('saveTaskButton').textContent = 'Zapisz zmiany';
+        document.getElementById('cancelEditButton').style.display = 'inline-block';
+        document.getElementById('manual-task-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function editAutomaticTask(userPlantId, taskType, dueDate) {
+        editingTaskId = null;
+        editingAutomaticTask = { userPlantId, taskType, dueDate };
+        document.getElementById('plantSelect').value = userPlantId;
+        document.getElementById('plantSelect').disabled = true;
+        document.getElementById('taskTypeSelect').value = taskType;
+        document.getElementById('taskTypeSelect').disabled = true;
+        document.getElementById('dueDateInput').value = dueDate;
+        document.getElementById('saveTaskButton').textContent = 'Zapisz zmiany';
+        document.getElementById('cancelEditButton').style.display = 'inline-block';
+        document.getElementById('manual-task-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelTaskEdit() {
+        editingTaskId = null;
+        editingAutomaticTask = null;
+        document.getElementById('plantSelect').disabled = false;
+        document.getElementById('taskTypeSelect').disabled = false;
+        document.getElementById('dueDateInput').value = '';
+        document.getElementById('saveTaskButton').textContent = 'Dodaj';
+        document.getElementById('cancelEditButton').style.display = 'none';
+    }
+
+    function deleteTask(id) {
+        if (!confirm("Usunąć zaplanowane zadanie?")) return;
+
+        fetch(`/api/Tasks/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            if (editingTaskId === id) cancelTaskEdit();
+            loadData();
+        })
+        .catch(() => alert("Nie udało się usunąć zadania."));
+    }
+
+    function deleteAutomaticTask(userPlantId, taskType, dueDate) {
+        if (!confirm("Usunąć ten termin z harmonogramu?")) return;
+
+        fetch('/api/Tasks/skip-automatic', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userPlantId, taskType, dueDate })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadData();
+        })
+        .catch(() => alert("Nie udało się usunąć terminu."));
+    }
+
+    loadData();
+</script>

@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Panel Główny";
+}
+
+<div style="text-align: center; margin-top: 20px; margin-bottom: 40px; font-family: 'Segoe UI', sans-serif;">
+    <h1 style="color: #2e7d32; font-size: 2.8em; font-weight: bold; margin-bottom: 10px;">
+        🌿 Zielnik — Panel Główny
+    </h1>
+    <p style="color: #666; font-size: 1.2em; max-width: 600px; margin: 0 auto;">
+        Zarządzaj swoimi domowymi uprawami, planuj podlewanie i dbaj o zieloną przestrzeń w prosty sposób.
+    </p>
+</div>
+
+<div style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; font-family: 'Segoe UI', sans-serif;">
+
+    <div onclick="window.location='/GardensPage'" style="background: #e3f2fd; border: 2px solid #90caf9; border-radius: 12px; padding: 25px; width: 240px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <span style="font-size: 3em;">🏡</span>
+        <h3 style="margin: 15px 0 10px 0; color: #0d47a1;">Moje Ogrody</h3>
+        <p style="color: #555; font-size: 0.9em; margin: 0;">Przeglądaj swoje strefy zieleni.</p>
+    </div>
+
+    <div onclick="window.location='/PlantsPage'" style="background: #e8f5e9; border: 2px solid #a5d6a7; border-radius: 12px; padding: 25px; width: 240px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <span style="font-size: 3em;">🌱</span>
+        <h3 style="margin: 15px 0 10px 0; color: #2e7d32;">Baza Roślin</h3>
+        <p style="color: #555; font-size: 0.9em; margin: 0;">Katalog gatunków i parametry.</p>
+    </div>
+
+    <div onclick="window.location='/TasksPage'" style="background: #fff8e1; border: 2px solid #ffe082; border-radius: 12px; padding: 25px; width: 240px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <span style="font-size: 3em;">📅</span>
+        <h3 style="margin: 15px 0 10px 0; color: #f57c00;">Harmonogram</h3>
+        <p style="color: #555; font-size: 0.9em; margin: 0;">Lista zadań na dzisiejszy dzień.</p>
+    </div>
+
+    <div onclick="window.location='/StatsPage'" style="background: #f3e5f5; border: 2px solid #ce93d8; border-radius: 12px; padding: 25px; width: 240px; text-align: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+        <span style="font-size: 3em;">📊</span>
+        <h3 style="margin: 15px 0 10px 0; color: #7b1fa2;">Statystyki</h3>
+        <p style="color: #555; font-size: 0.9em; margin: 0;">Zobacz pełne podsumowanie swoich upraw i aktywności.</p>
+    </div>
+</div>

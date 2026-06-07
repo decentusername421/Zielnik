@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Zielnik</title>
+</head>
+
+<body style="margin:0; font-family:Arial;">
+
+    @* Wspólny pasek nawigacji jest używany przez wszystkie widoki aplikacji. *@
+    <nav style="background:#2d6a4f; padding:15px; display:flex; align-items:center; position:relative;">
+        <div style="flex-grow: 1;">
+            <a href="/Home/Index" style="color:white; margin-right:15px; text-decoration:none;">🏠 Home</a>
+            <a href="/GardensPage/Index" style="color:white; margin-right:15px; text-decoration:none;">🌿 Gardens</a>
+            <a href="/PlantsPage/Index" style="color:white; margin-right:15px; text-decoration:none;">🌱 Plants</a>
+            <a href="/TasksPage/Index" style="color:white; margin-right:15px; text-decoration:none;">📅 Harmonogram</a>
+            <a href="/StatsPage/Index" style="color:white; text-decoration:none;">📊 Statystyki</a>
+        </div>
+
+        <div id="auth-buttons" style="display: flex; gap: 10px; align-items:center;">
+            <span id="user-name" style="display:none; color:white; font-weight:bold; font-size:14px;"></span>
+
+            <a id="login-btn" href="/Account/Login" style="display: none; background: #fff; color: #2d6a4f; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                Zaloguj
+            </a>
+
+            <button id="logout-btn" onclick="logout()" style="display: none; background: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                Wyloguj
+            </button>
+        </div>
+    </nav>
+
+    <div style="padding: 20px;">
+        @RenderBody()
+    </div>
+
+    <script>
+        // Token jest przechowywany po stronie klienta i dołączany do żądań API.
+        const authToken = localStorage.getItem('jwtToken');
+
+        // Dane z tokenu służą wyłącznie do dopasowania interfejsu.
+        // Właściwa kontrola uprawnień zawsze odbywa się na backendzie.
+        function getTokenPayload() {
+            if (!authToken) return null;
+
+            try {
+                const payload = authToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                return JSON.parse(decodeURIComponent(escape(atob(payload))));
+            } catch {
+                return null;
+            }
+        }
+
+        if (authToken) {
+            document.getElementById('logout-btn').style.display = 'block';
+            const payload = getTokenPayload();
+            const email = payload?.unique_name
+                || payload?.email
+                || payload?.name
+                || payload?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+
+            if (email) {
+                document.getElementById('user-name').textContent = email;
+                document.getElementById('user-name').style.display = 'inline';
+            }
+        } else {
+            document.getElementById('login-btn').style.display = 'block';
+        }
+
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/Home/Index';
+        }
+    </script>
+
+</body>
+</html>

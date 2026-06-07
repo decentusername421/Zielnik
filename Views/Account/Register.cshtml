@@ -1,0 +1,91 @@
+﻿<style>
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+    }
+
+    .register-box {
+        background: #fff;
+        padding: 40px;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+        .register-box h2 {
+            color: #2d6a4f;
+            margin-bottom: 25px;
+        }
+
+        .register-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .register-box button {
+            width: 100%;
+            padding: 12px;
+            background: #2d6a4f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+            .register-box button:hover {
+                background: #235a42;
+            }
+</style>
+
+<div class="register-container">
+    <div class="register-box">
+        <h2>Rejestracja</h2>
+        <form id="registerForm">
+            <input type="text" id="username" placeholder="Nazwa użytkownika" required />
+            <input type="email" id="email" placeholder="Email" required />
+            <input type="password" id="password" placeholder="Hasło" required />
+            <button type="submit">Zarejestruj się</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            if (response.ok) {
+                alert('Konto utworzone! Teraz możesz się zalogować.');
+                window.location.href = '/Account/Login';
+            } else {
+                const error = await response.text();
+                alert('Błąd rejestracji: ' + error);
+            }
+        } catch (error) {
+            alert('Wystąpił problem z połączeniem.');
+        }
+    });
+</script>

@@ -1,0 +1,153 @@
+﻿<h1>🌿 Szczegóły ogrodu</h1>
+<div id="garden">Ładowanie...</div>
+
+<style>
+    .garden-plant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 14px;
+        max-width: 1100px;
+    }
+
+    .garden-plant-card {
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        padding: 14px;
+        background: white;
+        min-height: 115px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+
+    .garden-plant-card h3 {
+        margin: 0 0 7px;
+        color: #2e7d32;
+        font-size: 1.05rem;
+    }
+</style>
+
+<h2>🌱 Rośliny w tym ogrodzie</h2>
+<div id="my-plants-list" class="garden-plant-grid">Ładowanie Twoich roślin...</div>
+
+<hr>
+<h2>➕ Posadź nową roślinę</h2>
+<label><b>Filtruj według kategorii:</b></label>
+<br>
+<select id="categorySelect" onchange="filterPlants()" style="width: 100%; max-width: 300px; padding: 8px; margin-bottom: 15px;">
+    <option value="all">⭐ Wszystkie</option>
+</select>
+
+<div id="plants-list" class="garden-plant-grid">Ładowanie bazy roślin...</div>
+
+<script>
+    const gardenId = window.location.pathname.split('/').pop();
+    const token = localStorage.getItem('jwtToken');
+
+    // UserPlant reprezentuje konkretne nasadzenie wybranej rośliny w ogrodzie.
+    function loadMyPlants() {
+        fetch('/api/UserPlants', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(data => {
+            const myPlants = data.filter(p => p.gardenId == gardenId);
+            document.getElementById('my-plants-list').innerHTML = myPlants.length > 0
+                ? myPlants.map(p => `
+                    <div class="garden-plant-card">
+                        <div>
+                            <h3>✅ ${p.nickname || p.plantName}</h3>
+                            <p style="margin:5px 0;">${p.plantName}</p>
+                        </div>
+                        <button onclick="removePlant('${p.id}')" style="background:#d32f2f; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; align-self:flex-start;">Usuń</button>
+                    </div>`).join('')
+                : '<div>Brak posadzonych roślin.</div>';
+        });
+    }
+
+    // Usuwamy nasadzenie użytkownika, a nie pozycję ze wspólnego katalogu roślin.
+    function removePlant(userPlantId) {
+        if(!confirm("Czy na pewno chcesz usunąć tę roślinę z ogrodu?")) return;
+
+        fetch(`/api/UserPlants/${userPlantId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(r => {
+            if (r.ok) {
+                loadMyPlants();
+            } else {
+                alert("Błąd przy usuwaniu.");
+            }
+        });
+    }
+
+    // Pobranie danych ogrodu
+    fetch(`/api/Gardens/${gardenId}`, { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(g => document.getElementById('garden').innerHTML = `<h3>${g.name}</h3>`);
+
+    // Katalog zawiera rośliny publiczne oraz prywatne propozycje bieżącego użytkownika.
+    fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(data => {
+        window.allPlants = data;
+        renderPlants(data);
+    });
+
+    // Pobranie kategorii
+    fetch('/api/PlantCategories', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(categories => {
+        const select = document.getElementById('categorySelect');
+        select.innerHTML = '<option value="all">⭐ Wszystkie</option>' +
+            categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    });
+
+    function renderPlants(plants) {
+        document.getElementById('plants-list').innerHTML = plants.map(p => `
+            <div class="garden-plant-card">
+                <div>
+                    <h3>${p.name}</h3>
+                    <p style="margin:5px 0;">Gatunek: <b>${p.species}</b></p>
+                </div>
+                <button onclick="plantSeed('${p.id}')" style="background:#2e7d32; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; align-self:flex-start;">Posadź</button>
+            </div>
+        `).join('');
+    }
+
+    function plantSeed(plantId) {
+        // Połączenie gardenId i plantId tworzy nowe nasadzenie UserPlant.
+        const plantName = window.allPlants.find(p => p.id === plantId)?.name || "Roślina";
+        const data = {
+            gardenId: gardenId,
+            plantId: plantId,
+            nickname: plantName + " (własna)",
+            sowingDate: new Date().toISOString(),
+            plantingDate: new Date().toISOString()
+        };
+
+        fetch('/api/UserPlants', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => {
+            if (r.ok) {
+                alert("Roślina została posadzona!");
+                loadMyPlants();
+            } else {
+                alert("Błąd przy sadzeniu.");
+            }
+        });
+    }
+
+    function filterPlants() {
+        const val = document.getElementById('categorySelect').value;
+        const filtered = (val === 'all')
+            ? window.allPlants
+            : window.allPlants.filter(p => p.categories && p.categories.includes(val));
+        renderPlants(filtered);
+    }
+
+    loadMyPlants();
+</script>

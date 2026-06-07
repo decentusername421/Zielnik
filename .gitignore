@@ -1,0 +1,6 @@
+.vs/
+bin/
+obj/
+.codex-temp/
+*.user
+*.suo

@@ -1,0 +1,25 @@
+@Zielnik_HostAddress = http://localhost:5031
+
+GET {{Zielnik_HostAddress}}/weatherforecast/
+Accept: application/json
+
+### GET PLANTS
+GET http://localhost:5031/api/Plants
+Accept: application/json
+
+### CREATE GARDEN
+POST http://localhost:5031/api/Gardens
+Content-Type: application/json
+
+{
+  "name": "Testowy ogród"
+}
+
+### REGISTER USER
+POST http://localhost:5031/api/Auth/register
+Content-Type: application/json
+
+{
+  "email": "test@test.pl",
+  "password": "Test123!"
+}

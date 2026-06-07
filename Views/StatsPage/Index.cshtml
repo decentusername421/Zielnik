@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Statystyki";
+}
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .stat-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .stat-card h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .stat-card p {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+</style>
+
+<div style="max-width: 900px; margin: 0 auto; font-family: 'Segoe UI', sans-serif;">
+    <h2 style="color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 10px;">Twoje Podsumowanie</h2>
+
+    <div id="stats-content" class="stats-grid">
+        <div style="grid-column: 1/-1;">Ładowanie danych...</div>
+    </div>
+</div>
+
+<script>
+    // Backend wykonuje agregacje ORM wyłącznie dla ogrodów zalogowanego użytkownika.
+    fetch('/api/stats', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') }
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('stats-content').innerHTML = `
+            <div class="stat-card"><h3>Ogrody</h3><p>${data.gardensCount}</p></div>
+            <div class="stat-card"><h3>Rośliny</h3><p>${data.plantsCount}</p></div>
+            <div class="stat-card"><h3>Aktywne</h3><p>${data.activePlantsCount}</p></div>
+            <div class="stat-card"><h3>Zadania wykonane</h3><p>${data.completedTasksCount}</p></div>
+            <div class="stat-card"><h3>Zadania zaplanowane</h3><p>${data.plannedTasksCount}</p></div>
+            <div class="stat-card"><h3>Podlania</h3><p>${data.wateringsCount}</p></div>
+            <div class="stat-card"><h3>Nawożenia</h3><p>${data.fertilizingsCount}</p></div>
+            <div class="stat-card"><h3>Opryski</h3><p>${data.sprayingsCount}</p></div>
+            <div class="stat-card"><h3>Zbiory (ilość)</h3><p>${data.totalHarvest}</p></div>
+            <div class="stat-card"><h3>Notatki</h3><p>${data.notesCount}</p></div>
+        `;
+    })
+    .catch(() => {
+        document.getElementById('stats-content').innerHTML = "<p>Błąd wczytywania statystyk.</p>";
+    });
+</script>

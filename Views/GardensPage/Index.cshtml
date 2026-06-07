@@ -1,0 +1,206 @@
+﻿<h1>🏡 Zarządzanie Ogrodami</h1>
+
+<style>
+    .garden-create-panel {
+        background: #e3f2fd;
+        padding: 18px;
+        border-radius: 8px;
+        margin-bottom: 26px;
+        border: 1px solid #bbdefb;
+        max-width: 900px;
+    }
+
+    .garden-create-row {
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .garden-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+        max-width: 1100px;
+    }
+
+    .garden-card {
+        border: 1px solid #d8e2e8;
+        border-radius: 8px;
+        padding: 15px;
+        background: white;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+
+    .garden-card h3 {
+        margin: 0 0 14px;
+        color: #0d47a1;
+        overflow-wrap: anywhere;
+    }
+
+    .garden-actions {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+    }
+
+    .garden-actions a,
+    .garden-actions button {
+        border: none;
+        border-radius: 4px;
+        padding: 7px 10px;
+        color: white;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 600px) {
+        .garden-create-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div id="successMessage" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold;">
+    ✅ Sukces! Nowy ogród został utworzony.
+</div>
+
+<div class="garden-create-panel">
+    <h3 style="color: #0d47a1; margin-top: 0;">➕ Utwórz nowy ogród</h3>
+
+    <div class="garden-create-row">
+        <div>
+            <label for="gardenName"><b>Nazwa ogrodu:</b></label>
+            <input type="text" id="gardenName" placeholder="np. Ogród Warzywny, Balkon" style="width: 100%; box-sizing:border-box; padding: 9px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <button onclick="createNewGarden()" style="background: #0d47a1; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            💾 Zapisz ogród
+        </button>
+    </div>
+</div>
+
+<hr>
+
+<h2>📋 Twoje Ogrody</h2>
+<div id="list" class="garden-grid">Ładowanie listy ogrodów...</div>
+
+<script>
+    // Lista pochodzi z zabezpieczonego endpointu, który zwraca tylko ogrody właściciela.
+    function loadGardens() {
+        const token = localStorage.getItem('jwtToken');
+        const container = document.getElementById('list');
+
+        fetch('/api/Gardens', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.status === 401) throw new Error("Brak uprawnień. Zaloguj się!");
+            if (!response.ok) throw new Error("Błąd serwera: " + response.status);
+            return response.json();
+        })
+        .then(data => {
+            window.loadedGardens = data;
+            container.innerHTML = data.length > 0 ? data.map(g => `
+                <div class="garden-card">
+                    <h3>🌳 ${g.name}</h3>
+                    <div class="garden-actions">
+                        <a href="/GardensPage/Details/${g.id}" style="background:#2e7d32;">Zobacz szczegóły</a>
+                        <button onclick="editGarden('${g.id}')" style="background:#0d47a1;">Edytuj</button>
+                        <button onclick="deleteGarden('${g.id}')" style="background:#d32f2f;">Usuń</button>
+                    </div>
+                </div>
+            `).join('') : '<p>Nie masz jeszcze żadnego ogrodu.</p>';
+        })
+        .catch(error => {
+            container.innerHTML = `<p style="color:red;">❌ ${error.message}</p>`;
+            console.error(error);
+        });
+    }
+
+    function createNewGarden() {
+        const token = localStorage.getItem('jwtToken');
+        const name = document.getElementById('gardenName').value.trim();
+
+        if (!token) {
+            alert("Zaloguj się, aby dodać ogród.");
+            window.location.href = '/Account/Login';
+            return;
+        }
+
+        if (!name) {
+            alert("Podaj nazwę ogrodu.");
+            return;
+        }
+
+        fetch('/api/Gardens', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        })
+        .then(response => {
+            if (response.status === 401) throw new Error("Brak uprawnień. Zaloguj się ponownie.");
+            if (!response.ok) throw new Error("Nie udało się utworzyć ogrodu.");
+            return response.json();
+        })
+        .then(() => {
+            document.getElementById('gardenName').value = '';
+            document.getElementById('successMessage').style.display = 'block';
+            loadGardens();
+        })
+        .catch(error => {
+            alert(error.message);
+            console.error(error);
+        });
+    }
+
+    // Edycja i usuwanie korzystają z tego samego API co Swagger.
+    // Backend dodatkowo sprawdza, czy ogród należy do zalogowanego użytkownika.
+    function editGarden(id) {
+        const currentName = window.loadedGardens.find(g => g.id === id)?.name || '';
+        const name = prompt("Podaj nową nazwę ogrodu:", currentName);
+
+        if (name === null || !name.trim()) return;
+
+        fetch(`/api/Gardens/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwtToken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: name.trim() })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadGardens();
+        })
+        .catch(() => alert("Nie udało się zmienić nazwy ogrodu."));
+    }
+
+    function deleteGarden(id) {
+        if (!confirm("Usunąć ogród razem z jego nasadzeniami i historią prac?")) return;
+
+        fetch(`/api/Gardens/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') }
+        })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadGardens();
+        })
+        .catch(() => alert("Nie udało się usunąć ogrodu."));
+    }
+
+    loadGardens();
+</script>
