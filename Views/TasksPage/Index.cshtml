@@ -10,6 +10,11 @@
 
     <hr />
 
+    <h3>Wszystkie zaplanowane zadania (najbliższe 30 dni):</h3>
+    <ul id="upcoming-list"><li>Ładowanie zadań...</li></ul>
+
+    <hr />
+
     <h3>Dodaj zadanie:</h3>
     <div id="manual-task-form">
         <select id="plantSelect" style="padding: 5px;"></select>
@@ -38,7 +43,9 @@
             .then(r => r.json())
             .then(plants => {
                 const select = document.getElementById('plantSelect');
-                select.innerHTML = plants.map(p => `<option value="${p.id}">${p.nickname || p.plant.name}</option>`).join('');
+                select.innerHTML = plants.length > 0
+                    ? plants.map(p => `<option value="${p.id}">${p.nickname || p.plantName}</option>`).join('')
+                    : '<option value="">Najpierw dodaj roślinę do ogrodu</option>';
             });
 
         // 2. Pobierz zadania na dziś
@@ -51,7 +58,17 @@
                     : '<li>Brak zadań na dzisiaj!</li>';
             });
 
-        // 3. Pobierz historię
+        // 3. Pobierz wszystkie najbliższe zadania
+        fetch('/api/Tasks/upcoming?days=30', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(tasks => {
+                const container = document.getElementById('upcoming-list');
+                container.innerHTML = tasks.length > 0
+                    ? tasks.map(t => `<li><strong>${t.plantName}</strong> - ${t.task} (${new Date(t.dueDate).toLocaleDateString()})</li>`).join('')
+                    : '<li>Brak zaplanowanych zadań.</li>';
+            });
+
+        // 4. Pobierz historię
         fetch('/api/Tasks/history', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(r => r.json())
             .then(history => {
@@ -74,6 +91,11 @@
         const userPlantId = document.getElementById('plantSelect').value;
         const taskType = document.getElementById('taskTypeSelect').value;
         const dueDate = document.getElementById('dueDateInput').value;
+
+        if (!userPlantId) {
+            alert("Najpierw dodaj roślinę do swojego ogrodu.");
+            return;
+        }
 
         if (!dueDate) {
             alert("Proszę wybrać datę!");

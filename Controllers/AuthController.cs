@@ -34,7 +34,9 @@ namespace Zielnik.Controllers
         {
             var user = new IdentityUser
             {
-                UserName = dto.Email,
+                UserName = string.IsNullOrWhiteSpace(dto.Username)
+                    ? dto.Email
+                    : dto.Username.Trim(),
                 Email = dto.Email
             };
 
@@ -43,7 +45,7 @@ namespace Zielnik.Controllers
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            // 🔥 WAŻNE: przypisanie roli
+            // Każde nowe konto otrzymuje podstawową rolę użytkownika.
             await _userManager.AddToRoleAsync(user, "User");
 
             return Ok("User created");
@@ -73,7 +75,7 @@ namespace Zielnik.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? string.Empty),
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
@@ -84,7 +86,7 @@ namespace Zielnik.Controllers
             }
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

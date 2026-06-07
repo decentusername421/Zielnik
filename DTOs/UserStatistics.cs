@@ -16,6 +16,10 @@
 
         public int TreatmentsCount { get; set; }
 
+        public int CompletedTasksCount { get; set; }
+
+        public int PlannedTasksCount { get; set; }
+
         public int WateringsCount { get; set; }
 
         public int FertilizingsCount { get; set; }

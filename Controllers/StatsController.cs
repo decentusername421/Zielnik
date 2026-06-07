@@ -36,6 +36,7 @@ namespace Zielnik.Controllers
                 .Include(x => x.Harvests)
                 .Include(x => x.Photos)
                 .Where(x => gardens.Contains(x.GardenId))
+                .AsSplitQuery()
                 .ToListAsync();
 
             var stats = new UserStatisticsDto
@@ -44,9 +45,11 @@ namespace Zielnik.Controllers
                 PlantsCount = plants.Count,
                 ActivePlantsCount = plants.Count(p => p.Status == PlantStatus.Active),
                 NotesCount = plants.Sum(p => p.Notes.Count),
-                WateringsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Watering")),
-                FertilizingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Fertilizing")),
-                SprayingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Spraying")),
+                CompletedTasksCount = plants.Sum(p => p.Treatments.Count(t => t.Notes != "Zaplanowane")),
+                PlannedTasksCount = plants.Sum(p => p.Treatments.Count(t => t.Notes == "Zaplanowane")),
+                WateringsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Watering" && t.Notes != "Zaplanowane")),
+                FertilizingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Fertilizing" && t.Notes != "Zaplanowane")),
+                SprayingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Spraying" && t.Notes != "Zaplanowane")),
                 HarvestsCount = plants.Sum(p => p.Harvests.Count),
                 TotalHarvest = plants.Sum(p => p.Harvests.Sum(h => h.Quantity)),
                 PhotosCount = plants.Sum(p => p.Photos.Count)

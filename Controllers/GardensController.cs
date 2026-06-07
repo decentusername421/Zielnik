@@ -84,10 +84,12 @@ namespace Zielnik.Controllers
      Guid id,
      [FromBody] UpdateGardenDto updatedData)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
                 .ThenInclude(up => up.Plant)
-                .FirstOrDefaultAsync(g => g.Id == id);
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (garden == null)
             {
@@ -113,11 +115,12 @@ namespace Zielnik.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGarden(Guid id)
         {
-            // Usuwanie ogrodu z bazy danych
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var garden = await _context.Gardens
                 .Include(g => g.Plants)
-                 .ThenInclude(up => up.Plant)
-                .FirstOrDefaultAsync(g => g.Id == id);
+                .ThenInclude(up => up.Plant)
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (garden == null)
             {

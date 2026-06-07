@@ -71,7 +71,7 @@
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('/api/account/register', {
+            const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
@@ -81,7 +81,8 @@
                 alert('Konto utworzone! Teraz możesz się zalogować.');
                 window.location.href = '/Account/Login';
             } else {
-                alert('Błąd rejestracji. Sprawdź czy login nie jest zajęty.');
+                const error = await response.text();
+                alert('Błąd rejestracji: ' + error);
             }
         } catch (error) {
             alert('Wystąpił problem z połączeniem.');

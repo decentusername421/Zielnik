@@ -12,10 +12,14 @@
         <div style="flex-grow: 1;">
             <a href="/Home/Index" style="color:white; margin-right:15px; text-decoration:none;">🏠 Home</a>
             <a href="/GardensPage/Index" style="color:white; margin-right:15px; text-decoration:none;">🌿 Gardens</a>
-            <a href="/PlantsPage/Index" style="color:white; text-decoration:none;">🌱 Plants</a>
+            <a href="/PlantsPage/Index" style="color:white; margin-right:15px; text-decoration:none;">🌱 Plants</a>
+            <a href="/TasksPage/Index" style="color:white; margin-right:15px; text-decoration:none;">📅 Harmonogram</a>
+            <a href="/StatsPage/Index" style="color:white; text-decoration:none;">📊 Statystyki</a>
         </div>
 
-        <div id="auth-buttons" style="display: flex; gap: 10px;">
+        <div id="auth-buttons" style="display: flex; gap: 10px; align-items:center;">
+            <span id="user-name" style="display:none; color:white; font-weight:bold; font-size:14px;"></span>
+
             <a id="login-btn" href="/Account/Login" style="display: none; background: #fff; color: #2d6a4f; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
                 Zaloguj
             </a>
@@ -31,21 +35,38 @@
     </div>
 
     <script>
-        // Sprawdzamy status logowania przy każdym załadowaniu strony
         const token = localStorage.getItem('jwtToken');
 
+        function getTokenPayload() {
+            if (!token) return null;
+
+            try {
+                const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                return JSON.parse(decodeURIComponent(escape(atob(payload))));
+            } catch {
+                return null;
+            }
+        }
+
         if (token) {
-            // Jeśli jest token, pokazujemy przycisk Wyloguj
             document.getElementById('logout-btn').style.display = 'block';
+            const payload = getTokenPayload();
+            const email = payload?.unique_name
+                || payload?.email
+                || payload?.name
+                || payload?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+
+            if (email) {
+                document.getElementById('user-name').textContent = email;
+                document.getElementById('user-name').style.display = 'inline';
+            }
         } else {
-            // Jeśli nie ma tokena, pokazujemy przycisk Zaloguj
             document.getElementById('login-btn').style.display = 'block';
         }
 
-        // Funkcja wylogowania
         function logout() {
             localStorage.removeItem('jwtToken');
-            window.location.href = '/Home/Index'; // Powrót na stronę główną
+            window.location.href = '/Home/Index';
         }
     </script>
 

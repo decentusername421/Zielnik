@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Zielnik.DTOs;
 
 namespace Zielnik.Controllers
 {
@@ -28,17 +27,5 @@ namespace Zielnik.Controllers
             return View();
         }
 
-        [HttpPost("api/account/login")]
-        public async Task<IActionResult> LoginApi([FromBody] LoginDto model)
-        {
-
-            return Ok(new { token = "twój_wygenerowany_token" });
-        }
-
-        [HttpPost("api/account/register")]
-        public async Task<IActionResult> RegisterApi([FromBody] RegisterDto model)
-        {
-            return Ok(new { message = "Konto założone" });
-        }
     }
 }

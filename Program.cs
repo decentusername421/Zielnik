@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +10,10 @@ using Zielnik.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // ======================
 // DB
@@ -22,6 +27,9 @@ builder.Services.AddDbContext<ZielnikDbContext>(options =>
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<ZielnikDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddDataProtection()
+    .UseEphemeralDataProtectionProvider();
 
 // ======================
 // JWT

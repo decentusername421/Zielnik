@@ -8,7 +8,7 @@ namespace Zielnik.Controllers
         public IActionResult Index()
         {
             // Jeśli użytkownik jest już zalogowany, wyślij go prosto do Dashboardu
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 return RedirectToAction("Index", "Home");
             }

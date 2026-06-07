@@ -4,6 +4,9 @@ namespace Zielnik.DTOs
 {
     public class CreateUserDto
     {
+        [MaxLength(50)]
+        public string? Username { get; set; }
+
         [Required(ErrorMessage = "Email jest wymagany")]
         [EmailAddress(ErrorMessage = "Niepoprawny format email")]
         public string Email { get; set; } = string.Empty;

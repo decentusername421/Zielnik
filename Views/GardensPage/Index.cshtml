@@ -54,5 +54,44 @@
         });
     }
 
+    function createNewGarden() {
+        const token = localStorage.getItem('jwtToken');
+        const name = document.getElementById('gardenName').value.trim();
+
+        if (!token) {
+            alert("Zaloguj się, aby dodać ogród.");
+            window.location.href = '/Account/Login';
+            return;
+        }
+
+        if (!name) {
+            alert("Podaj nazwę ogrodu.");
+            return;
+        }
+
+        fetch('/api/Gardens', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        })
+        .then(response => {
+            if (response.status === 401) throw new Error("Brak uprawnień. Zaloguj się ponownie.");
+            if (!response.ok) throw new Error("Nie udało się utworzyć ogrodu.");
+            return response.json();
+        })
+        .then(() => {
+            document.getElementById('gardenName').value = '';
+            document.getElementById('successMessage').style.display = 'block';
+            loadGardens();
+        })
+        .catch(error => {
+            alert(error.message);
+            console.error(error);
+        });
+    }
+
     loadGardens();
 </script>

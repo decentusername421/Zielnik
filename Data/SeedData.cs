@@ -1263,6 +1263,10 @@ public static class SeedData
         }
     
 
+        if (!context.PlantNotes.Any(n =>
+            n.UserPlantId == annaBasilDb.Id &&
+            n.CreatedAt == new DateTime(2025, 5, 10)))
+        {
         context.PlantNotes.AddRange(
 
     new PlantNote
@@ -1399,5 +1403,6 @@ public static class SeedData
 );
 
         context.SaveChanges();
+        }
     }
 }
