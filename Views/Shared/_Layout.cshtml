@@ -8,6 +8,7 @@
 
 <body style="margin:0; font-family:Arial;">
 
+    @* Wspólny pasek nawigacji jest używany przez wszystkie widoki aplikacji. *@
     <nav style="background:#2d6a4f; padding:15px; display:flex; align-items:center; position:relative;">
         <div style="flex-grow: 1;">
             <a href="/Home/Index" style="color:white; margin-right:15px; text-decoration:none;">🏠 Home</a>
@@ -35,20 +36,23 @@
     </div>
 
     <script>
-        const token = localStorage.getItem('jwtToken');
+        // Token jest przechowywany po stronie klienta i dołączany do żądań API.
+        const authToken = localStorage.getItem('jwtToken');
 
+        // Dane z tokenu służą wyłącznie do dopasowania interfejsu.
+        // Właściwa kontrola uprawnień zawsze odbywa się na backendzie.
         function getTokenPayload() {
-            if (!token) return null;
+            if (!authToken) return null;
 
             try {
-                const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                const payload = authToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
                 return JSON.parse(decodeURIComponent(escape(atob(payload))));
             } catch {
                 return null;
             }
         }
 
-        if (token) {
+        if (authToken) {
             document.getElementById('logout-btn').style.display = 'block';
             const payload = getTokenPayload();
             const email = payload?.unique_name

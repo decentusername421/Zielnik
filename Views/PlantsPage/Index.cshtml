@@ -1,48 +1,149 @@
 ﻿<h1>🌱 Zarządzanie Bazą Roślin</h1>
 
+<style>
+    .plant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+        max-width: 1100px;
+    }
+
+    .plant-card {
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        padding: 14px;
+        background: #fff;
+        min-height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+
+    .plant-card h3 {
+        margin: 0 0 8px;
+        color: #2e7d32;
+        font-size: 1.05rem;
+    }
+
+    .plant-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .plant-actions button {
+        border: none;
+        padding: 6px 10px;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+    }
+
+    .plant-form-panel {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #ddd;
+        max-width: 1050px;
+    }
+
+    .plant-form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 14px;
+        align-items: end;
+    }
+
+    .plant-form-field label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .plant-form-field input {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    .category-row {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) auto;
+        gap: 8px;
+    }
+
+    @@media (max-width: 800px) {
+        .plant-form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .category-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 <div id="successMessage" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold;">
     ✅ Roślina została pomyślnie dodana.
 </div>
 
-<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #ddd; max-width: 500px;">
+<div class="plant-form-panel">
     <h3 style="color: #2e7d32; margin-top: 0;">➕ Dodaj roślinę do bazy</h3>
 
-    <div style="margin-bottom: 10px;">
-        <label><b>Nazwa:</b></label><br>
-        <input type="text" id="plantName" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+    <div class="plant-form-grid">
+        <div class="plant-form-field">
+            <label for="plantName"><b>Nazwa:</b></label>
+            <input type="text" id="plantName">
+        </div>
+        <div class="plant-form-field">
+            <label for="plantSpecies"><b>Gatunek:</b></label>
+            <input type="text" id="plantSpecies" list="speciesList" placeholder="np. Solanum lycopersicum">
+            <datalist id="speciesList"></datalist>
+        </div>
+        <div class="plant-form-field">
+            <label for="plantWatering"><b>Podlewanie (co ile dni):</b></label>
+            <input type="number" id="plantWatering" value="2">
+        </div>
     </div>
 
-    <div style="margin-bottom: 10px;">
-        <label><b>Gatunek:</b></label><br>
-        <input type="text" id="plantSpecies" list="speciesList" placeholder="np. Solanum lycopersicum" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-        <datalist id="speciesList"></datalist>
-    </div>
+    <button onclick="addPlant()" style="background: #2e7d32; color: white; border: none; padding: 10px 22px; border-radius: 4px; cursor: pointer; margin-top:14px;">💾 Zapisz</button>
 
-    <div id="categoryBox" style="display:none; background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 20px; max-width: 500px;">
-        <h4 style="color: #2e7d32; margin-top: 0;">➕ Dodaj nową kategorię</h4>
-        <input type="text" id="newCategoryName" placeholder="Nazwa kategorii" style="width: 70%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-        <button onclick="addCategory()" style="background: #2e7d32; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer;">Dodaj</button>
+    <div id="categoryBox" style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 18px;">
+        <h4 id="categoryTitle" style="color: #2e7d32; margin: 0 0 10px;">➕ Zaproponuj nową kategorię</h4>
+        <div class="category-row">
+            <input type="text" id="newCategoryName" placeholder="Nazwa kategorii" style="width: 100%; box-sizing:border-box; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <button id="categoryButton" onclick="addCategory()" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Zaproponuj</button>
+        </div>
     </div>
-
-    <div style="margin-bottom: 15px;">
-        <label><b>Podlewanie (co ile dni):</b></label><br>
-        <input type="number" id="plantWatering" value="2" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-    </div>
-
-    <button onclick="addPlant()" style="background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%;">💾 Zapisz</button>
 </div>
-
-<h2>📋 Baza roślin</h2>
-<div id="list">Ładowanie...</div>
 
 <div id="pendingSection" style="display:none; margin-top: 30px;">
     <h2>⏳ Rośliny oczekujące na zatwierdzenie</h2>
-    <div id="pendingList">Ładowanie...</div>
+    <div id="pendingList" class="plant-grid">Ładowanie...</div>
 </div>
+
+<div id="pendingCategoriesSection" style="display:none; margin-top: 30px;">
+    <h2>⏳ Kategorie oczekujące na zatwierdzenie</h2>
+    <div id="pendingCategoriesList" class="plant-grid">Ładowanie...</div>
+</div>
+
+<hr style="margin:30px 0;">
+
+<h2>📋 Baza roślin</h2>
+<div id="list" class="plant-grid">Ładowanie...</div>
 
 <script>
     const token = localStorage.getItem('jwtToken');
+    let loadedPlants = [];
 
+    // Rola z JWT steruje widocznością narzędzi administracyjnych w interfejsie.
+    // Endpointy administracyjne niezależnie wymagają roli Admin na backendzie.
     function getPayload() {
         try {
             const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -73,41 +174,68 @@
         })
         .then(r => {
             if (r.ok) {
-                alert("Kategoria dodana pomyślnie!");
+                alert(isAdmin()
+                    ? "Kategoria dodana pomyślnie!"
+                    : "Propozycja kategorii została wysłana do administratora.");
                 document.getElementById('newCategoryName').value = '';
-            } else if (r.status === 403) {
-                alert("Błąd: Nie masz uprawnień administratora.");
+                loadPendingCategories();
             } else {
                 alert("Wystąpił błąd przy dodawaniu kategorii.");
             }
         });
     }
+
+    // Lista roślin obejmuje katalog publiczny i prywatne rośliny ich autora.
     function loadSpecies() {
         fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') } })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error("Nie udało się pobrać gatunków.");
+            return r.json();
+        })
         .then(data => {
             const speciesList = [...new Set(data.map(p => p.species).filter(s => s))];
             const list = document.getElementById('speciesList');
             list.innerHTML = speciesList.map(s => `<option value="${s}"></option>`).join('');
-        });
+        })
+        .catch(error => console.error(error));
     }
 
     function loadPlants() {
         const token = localStorage.getItem('jwtToken');
         fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(r => r.json())
+        .then(r => {
+            if (r.status === 401) throw new Error("Sesja wygasła. Zaloguj się ponownie.");
+            if (!r.ok) throw new Error("Nie udało się pobrać bazy roślin.");
+            return r.json();
+        })
         .then(data => {
+            loadedPlants = data;
             const deleteButton = p => isAdmin()
-                ? `<button onclick="deletePlant('${p.id}')" style="background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px;">🗑 Usuń</button>`
+                ? `<div class="plant-actions">
+                    <button onclick="editPlant('${p.id}')" style="background:#0d47a1;">Edytuj</button>
+                    <button onclick="deletePlant('${p.id}')" style="background:#d32f2f;">🗑 Usuń</button>
+                   </div>`
+                : '';
+            const plantStatus = p => p.isOwner && !p.isApproved
+                ? `<p style="margin:5px 0; color:${p.isRejected ? '#b71c1c' : '#ef6c00'};">
+                    ${p.isRejected ? 'Prywatna - propozycja odrzucona' : 'Prywatna - oczekuje na zatwierdzenie'}
+                   </p>`
                 : '';
 
             document.getElementById('list').innerHTML = data.map(p => `
-                <div style="border: 1px solid #eee; padding: 15px; margin: 10px 0; border-radius: 8px;">
-                    <h3 style="margin: 0; color: #2e7d32;">🌱 ${p.name}</h3>
-                    <p style="margin: 5px 0;">Gatunek: <b>${p.species}</b></p>
+                <div class="plant-card">
+                    <div>
+                        <h3>🌱 ${p.name}</h3>
+                        <p style="margin:5px 0;">Gatunek: <b>${p.species}</b></p>
+                        ${plantStatus(p)}
+                    </div>
                     ${deleteButton(p)}
                 </div>
             `).join('');
+        })
+        .catch(error => {
+            document.getElementById('list').innerHTML =
+                `<p style="color:#b71c1c;">${error.message}</p>`;
         });
     }
 
@@ -152,6 +280,46 @@
         .catch(() => alert("Nie udało się usunąć rośliny."));
     }
 
+    function editPlant(id) {
+        const plant = loadedPlants.find(p => p.id === id);
+        if (!plant) return;
+
+        const name = prompt("Nazwa rośliny:", plant.name);
+        if (name === null || !name.trim()) return;
+
+        const species = prompt("Gatunek:", plant.species);
+        if (species === null || !species.trim()) return;
+
+        const watering = prompt("Podlewanie co ile dni:", plant.wateringFrequencyDays);
+        if (watering === null) return;
+
+        const wateringFrequencyDays = parseInt(watering);
+        if (!wateringFrequencyDays || wateringFrequencyDays < 1 || wateringFrequencyDays > 365) {
+            alert("Częstotliwość podlewania musi wynosić od 1 do 365 dni.");
+            return;
+        }
+
+        fetch(`/api/Plants/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name.trim(),
+                species: species.trim(),
+                wateringFrequencyDays
+            })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadPlants();
+            loadSpecies();
+        })
+        .catch(() => alert("Nie udało się zmienić rośliny."));
+    }
+
+    // Administrator otrzymuje dwie kolejki moderacyjne: rośliny i kategorie.
     function loadPendingPlants() {
         if (!isAdmin()) return;
 
@@ -163,11 +331,15 @@
             const list = document.getElementById('pendingList');
             list.innerHTML = data.length > 0
                 ? data.map(p => `
-                    <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px;">
-                        <h3 style="margin: 0; color: #2e7d32;">🌱 ${p.name}</h3>
-                        <p style="margin: 5px 0;">Gatunek: <b>${p.species}</b></p>
-                        <button onclick="approvePlant('${p.id}')" style="background: #2e7d32; color: white; border: none; padding: 6px 10px; border-radius: 4px; margin-right: 8px;">Zatwierdź</button>
-                        <button onclick="deletePlant('${p.id}')" style="background: #ff4d4d; color: white; border: none; padding: 6px 10px; border-radius: 4px;">Usuń</button>
+                    <div class="plant-card">
+                        <div>
+                            <h3>🌱 ${p.name}</h3>
+                            <p style="margin:5px 0;">Gatunek: <b>${p.species}</b></p>
+                        </div>
+                        <div class="plant-actions">
+                            <button onclick="approvePlant('${p.id}')" style="background:#2e7d32;">Zatwierdź</button>
+                            <button onclick="rejectPlant('${p.id}')" style="background:#d32f2f;">Odrzuć</button>
+                        </div>
                     </div>
                 `).join('')
                 : '<p>Brak roślin oczekujących.</p>';
@@ -184,11 +356,64 @@
         .catch(() => alert("Nie udało się zatwierdzić rośliny."));
     }
 
+    function rejectPlant(id) {
+        fetch(`/api/Plants/${id}/reject`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadPlants();
+            loadPendingPlants();
+        })
+        .catch(() => alert("Nie udało się odrzucić propozycji."));
+    }
+
+    function loadPendingCategories() {
+        if (!isAdmin()) return;
+
+        document.getElementById('pendingCategoriesSection').style.display = 'block';
+
+        fetch('/api/PlantCategories/pending', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('pendingCategoriesList');
+            list.innerHTML = data.length > 0
+                ? data.map(c => `
+                    <div class="plant-card" style="min-height:100px;">
+                        <h3>${c.name}</h3>
+                        <div class="plant-actions">
+                            <button onclick="approveCategory('${c.id}')" style="background:#2e7d32;">Zatwierdź</button>
+                            <button onclick="rejectCategory('${c.id}')" style="background:#d32f2f;">Odrzuć</button>
+                        </div>
+                    </div>
+                `).join('')
+                : '<p>Brak kategorii oczekujących.</p>';
+        });
+    }
+
+    function approveCategory(id) {
+        fetch(`/api/PlantCategories/${id}/approve`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadPendingCategories();
+        })
+        .catch(() => alert("Nie udało się zatwierdzić kategorii."));
+    }
+
+    function rejectCategory(id) {
+        fetch(`/api/PlantCategories/${id}/reject`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(r => {
+            if (!r.ok) throw new Error();
+            loadPendingCategories();
+        })
+        .catch(() => alert("Nie udało się odrzucić kategorii."));
+    }
+
     if (isAdmin()) {
-        document.getElementById('categoryBox').style.display = 'block';
+        document.getElementById('categoryTitle').textContent = '➕ Dodaj nową kategorię';
+        document.getElementById('categoryButton').textContent = 'Dodaj';
     }
 
     loadSpecies();
     loadPlants();
     loadPendingPlants();
+    loadPendingCategories();
 </script>

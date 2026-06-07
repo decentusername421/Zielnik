@@ -74,6 +74,12 @@ namespace Zielnik.Data
                 .WithMany()
                 .HasForeignKey(p => p.CreatedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<PlantCategory>()
+                .HasOne(c => c.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(c => c.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

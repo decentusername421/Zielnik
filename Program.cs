@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -25,11 +24,7 @@ builder.Services.AddDbContext<ZielnikDbContext>(options =>
 // IDENTITY
 // ======================
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ZielnikDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddDataProtection()
-    .UseEphemeralDataProtectionProvider();
+    .AddEntityFrameworkStores<ZielnikDbContext>();
 
 // ======================
 // JWT
@@ -135,6 +130,19 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<ZielnikDbContext>();
+
+    // Repozytorium zawiera starszą bazę i migracje przyrostowe. Dla pustej
+    // bazy tworzymy aktualny schemat, a istniejącą aktualizujemy migracjami.
+    if (context.Database.GetAppliedMigrations().Any())
+        context.Database.Migrate();
+    else
+        context.Database.EnsureCreated();
+}
 
 using (var scope = app.Services.CreateScope())
 {

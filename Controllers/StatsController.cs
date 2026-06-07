@@ -45,11 +45,22 @@ namespace Zielnik.Controllers
                 PlantsCount = plants.Count,
                 ActivePlantsCount = plants.Count(p => p.Status == PlantStatus.Active),
                 NotesCount = plants.Sum(p => p.Notes.Count),
-                CompletedTasksCount = plants.Sum(p => p.Treatments.Count(t => t.Notes != "Zaplanowane")),
+                CompletedTasksCount = plants.Sum(p => p.Treatments.Count(t =>
+                    t.Notes != "Zaplanowane" &&
+                    t.Notes != "Pominięte automatyczne")),
                 PlannedTasksCount = plants.Sum(p => p.Treatments.Count(t => t.Notes == "Zaplanowane")),
-                WateringsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Watering" && t.Notes != "Zaplanowane")),
-                FertilizingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Fertilizing" && t.Notes != "Zaplanowane")),
-                SprayingsCount = plants.Sum(p => p.Treatments.Count(t => t.TreatmentType == "Spraying" && t.Notes != "Zaplanowane")),
+                WateringsCount = plants.Sum(p => p.Treatments.Count(t =>
+                    t.TreatmentType == "Watering" &&
+                    t.Notes != "Zaplanowane" &&
+                    t.Notes != "Pominięte automatyczne")),
+                FertilizingsCount = plants.Sum(p => p.Treatments.Count(t =>
+                    t.TreatmentType == "Fertilizing" &&
+                    t.Notes != "Zaplanowane" &&
+                    t.Notes != "Pominięte automatyczne")),
+                SprayingsCount = plants.Sum(p => p.Treatments.Count(t =>
+                    t.TreatmentType == "Spraying" &&
+                    t.Notes != "Zaplanowane" &&
+                    t.Notes != "Pominięte automatyczne")),
                 HarvestsCount = plants.Sum(p => p.Harvests.Count),
                 TotalHarvest = plants.Sum(p => p.Harvests.Sum(h => h.Quantity)),
                 PhotosCount = plants.Sum(p => p.Photos.Count)

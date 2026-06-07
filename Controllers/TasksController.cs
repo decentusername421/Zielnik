@@ -45,10 +45,12 @@ namespace Zielnik.Controllers
                             t.PerformedAt.Date == today)
                 .Select(t => new
                 {
+                    id = t.Id,
                     userPlantId = t.UserPlantId,
                     plantName = t.UserPlant.Plant.Name,
                     taskType = t.TreatmentType,
-                    dueDate = t.PerformedAt.Date
+                    dueDate = t.PerformedAt.Date,
+                    isManual = true
                 })
                 .ToListAsync();
 
@@ -62,22 +64,22 @@ namespace Zielnik.Controllers
                 if (plant.Plant.WateringFrequencyDays > 0 && days % plant.Plant.WateringFrequencyDays == 0)
                 {
                     var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Watering" && t.Notes != "Zaplanowane" && t.PerformedAt.Date == today);
-                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Watering", dueDate = today });
+                    if (!alreadyDone) tasks.Add(new { id = (Guid?)null, userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Watering", dueDate = today, isManual = false });
                 }
                 if (plant.Plant.FertilizingFrequencyDays > 0 && days % plant.Plant.FertilizingFrequencyDays == 0)
                 {
                     var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Fertilizing" && t.Notes != "Zaplanowane" && t.PerformedAt.Date == today);
-                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Fertilizing", dueDate = today });
+                    if (!alreadyDone) tasks.Add(new { id = (Guid?)null, userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Fertilizing", dueDate = today, isManual = false });
                 }
                 if (plant.Plant.SprayingFrequencyDays > 0 && days % plant.Plant.SprayingFrequencyDays == 0)
                 {
                     var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Spraying" && t.Notes != "Zaplanowane" && t.PerformedAt.Date == today);
-                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Spraying", dueDate = today });
+                    if (!alreadyDone) tasks.Add(new { id = (Guid?)null, userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Spraying", dueDate = today, isManual = false });
                 }
                 if (plant.Plant.HarvestAfterDays > 0 && days >= plant.Plant.HarvestAfterDays)
                 {
                     var alreadyDone = plant.Treatments.Any(t => t.TreatmentType == "Harvest" && t.Notes != "Zaplanowane" && t.PerformedAt.Date == today);
-                    if (!alreadyDone) tasks.Add(new { userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Harvest", dueDate = today });
+                    if (!alreadyDone) tasks.Add(new { id = (Guid?)null, userPlantId = plant.Id, plantName = plant.Plant.Name, taskType = "Harvest", dueDate = today, isManual = false });
                 }
             }
             return Ok(tasks);
@@ -91,6 +93,7 @@ namespace Zielnik.Controllers
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
                 .Include(up => up.Garden)
+                .Include(up => up.Treatments)
                 .Where(up => up.Garden.UserId == userId)
                 .ToListAsync();
 
@@ -135,6 +138,7 @@ namespace Zielnik.Controllers
             var plants = await _context.UserPlants
                 .Include(up => up.Plant)
                 .Include(up => up.Garden)
+                .Include(up => up.Treatments)
                 .Where(up => up.Garden.UserId == userId)
                 .ToListAsync();
 
@@ -151,11 +155,13 @@ namespace Zielnik.Controllers
                             t.PerformedAt.Date <= endDate)
                 .Select(t => new
                 {
+                    Id = t.Id,
                     PlantId = t.UserPlantId,
                     PlantName = t.UserPlant.Plant.Name,
                     t.UserPlant.Nickname,
                     Task = t.TreatmentType,
-                    DueDate = t.PerformedAt.Date
+                    DueDate = t.PerformedAt.Date,
+                    IsManual = true
                 })
                 .ToListAsync();
 
@@ -163,16 +169,45 @@ namespace Zielnik.Controllers
 
             foreach (var plant in plants)
             {
-                if (!plant.PlantingDate.HasValue || plant.Plant.WateringFrequencyDays <= 0) continue;
-                var current = plant.PlantingDate.Value.Date;
-                while (current <= endDate)
+                if (!plant.PlantingDate.HasValue) continue;
+
+                AddRecurringTasks(
+                    tasks, plant, "Watering",
+                    plant.Plant.WateringFrequencyDays, today, endDate);
+                AddRecurringTasks(
+                    tasks, plant, "Fertilizing",
+                    plant.Plant.FertilizingFrequencyDays ?? 0, today, endDate);
+                AddRecurringTasks(
+                    tasks, plant, "Spraying",
+                    plant.Plant.SprayingFrequencyDays ?? 0, today, endDate);
+
+                if (plant.Plant.HarvestAfterDays > 0)
                 {
-                    if (current >= today)
-                        tasks.Add(new { PlantId = plant.Id, PlantName = plant.Plant.Name, Nickname = plant.Nickname, Task = "Watering", DueDate = current });
-                    current = current.AddDays(plant.Plant.WateringFrequencyDays);
+                    var harvestDate = plant.PlantingDate.Value.Date
+                        .AddDays(plant.Plant.HarvestAfterDays.Value);
+                    var isSkipped = plant.Treatments.Any(t =>
+                        t.TreatmentType == "Harvest" &&
+                        t.Notes == "Pominięte automatyczne" &&
+                        t.PerformedAt.Date == harvestDate);
+
+                    if (harvestDate >= today && harvestDate <= endDate && !isSkipped)
+                    {
+                        tasks.Add(new
+                        {
+                            Id = (Guid?)null,
+                            PlantId = plant.Id,
+                            PlantName = plant.Plant.Name,
+                            Nickname = plant.Nickname,
+                            Task = "Harvest",
+                            DueDate = harvestDate,
+                            IsManual = false
+                        });
+                    }
                 }
             }
-            return Ok(tasks.OrderBy(t => ((DateTime)t.GetType().GetProperty("DueDate")!.GetValue(t)!)));
+            return Ok(tasks
+                .OrderBy(t => ((DateTime)t.GetType().GetProperty("DueDate")!.GetValue(t)!))
+                .ToList());
         }
 
         [HttpPost("complete")]
@@ -185,12 +220,15 @@ namespace Zielnik.Controllers
 
             if (userPlant == null) return NotFound("Plant not found");
 
-            var today = DateTime.UtcNow.Date;
-            var planned = await _context.PlantTreatments
-                .FirstOrDefaultAsync(t => t.UserPlantId == dto.UserPlantId &&
-                                          t.TreatmentType == dto.TaskType &&
-                                          t.Notes == "Zaplanowane" &&
-                                          t.PerformedAt.Date == today);
+            PlantTreatment? planned = null;
+
+            if (dto.TaskId.HasValue)
+            {
+                planned = await _context.PlantTreatments
+                    .FirstOrDefaultAsync(t => t.Id == dto.TaskId &&
+                                              t.UserPlantId == dto.UserPlantId &&
+                                              t.Notes == "Zaplanowane");
+            }
 
             if (planned != null)
             {
@@ -239,6 +277,163 @@ namespace Zielnik.Controllers
             return Ok();
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateManualTask(Guid id, [FromBody] UpdateManualTaskDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var task = await _context.PlantTreatments
+                .Include(t => t.UserPlant)
+                .ThenInclude(up => up.Garden)
+                .FirstOrDefaultAsync(t => t.Id == id &&
+                                          t.Notes == "Zaplanowane" &&
+                                          t.UserPlant.Garden.UserId == userId);
+
+            if (task == null)
+                return NotFound();
+
+            var targetPlant = await _context.UserPlants
+                .Include(up => up.Garden)
+                .FirstOrDefaultAsync(up => up.Id == dto.UserPlantId &&
+                                           up.Garden.UserId == userId);
+
+            if (targetPlant == null)
+                return BadRequest("Nie znaleziono rośliny użytkownika.");
+
+            task.UserPlantId = dto.UserPlantId;
+            task.TreatmentType = dto.TaskType;
+            task.PerformedAt = dto.DueDate.Date;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteManualTask(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Usunąć można wyłącznie własne, ręcznie zaplanowane zadanie.
+            var task = await _context.PlantTreatments
+                .Include(t => t.UserPlant)
+                .ThenInclude(up => up.Garden)
+                .FirstOrDefaultAsync(t => t.Id == id &&
+                                          t.Notes == "Zaplanowane" &&
+                                          t.UserPlant.Garden.UserId == userId);
+
+            if (task == null)
+                return NotFound();
+
+            _context.PlantTreatments.Remove(task);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPost("skip-automatic")]
+        public async Task<IActionResult> SkipAutomaticTask([FromBody] AutomaticTaskDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userPlant = await _context.UserPlants
+                .Include(up => up.Garden)
+                .FirstOrDefaultAsync(up => up.Id == dto.UserPlantId &&
+                                           up.Garden.UserId == userId);
+
+            if (userPlant == null)
+                return NotFound();
+
+            await MarkAutomaticTaskAsSkipped(dto);
+
+            return NoContent();
+        }
+
+        [HttpPost("reschedule-automatic")]
+        public async Task<IActionResult> RescheduleAutomaticTask(
+            [FromBody] RescheduleAutomaticTaskDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var targetPlant = await _context.UserPlants
+                .Include(up => up.Garden)
+                .FirstOrDefaultAsync(up => up.Id == dto.UserPlantId &&
+                                           up.Garden.UserId == userId);
+
+            if (targetPlant == null)
+                return NotFound();
+
+            await MarkAutomaticTaskAsSkipped(dto);
+
+            _context.PlantTreatments.Add(new PlantTreatment
+            {
+                Id = Guid.NewGuid(),
+                UserPlantId = dto.UserPlantId,
+                TreatmentType = dto.TaskType,
+                PerformedAt = dto.NewDueDate.Date,
+                Notes = "Zaplanowane"
+            });
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        private static void AddRecurringTasks(
+            List<object> tasks,
+            UserPlant plant,
+            string taskType,
+            int frequencyDays,
+            DateTime today,
+            DateTime endDate)
+        {
+            if (frequencyDays <= 0 || !plant.PlantingDate.HasValue) return;
+
+            var current = plant.PlantingDate.Value.Date;
+            while (current < today)
+                current = current.AddDays(frequencyDays);
+
+            while (current <= endDate)
+            {
+                var isSkipped = plant.Treatments.Any(t =>
+                    t.TreatmentType == taskType &&
+                    t.Notes == "Pominięte automatyczne" &&
+                    t.PerformedAt.Date == current);
+
+                if (!isSkipped)
+                {
+                    tasks.Add(new
+                    {
+                        Id = (Guid?)null,
+                        PlantId = plant.Id,
+                        PlantName = plant.Plant.Name,
+                        Nickname = plant.Nickname,
+                        Task = taskType,
+                        DueDate = current,
+                        IsManual = false
+                    });
+                }
+
+                current = current.AddDays(frequencyDays);
+            }
+        }
+
+        private async Task MarkAutomaticTaskAsSkipped(AutomaticTaskDto dto)
+        {
+            var alreadySkipped = await _context.PlantTreatments.AnyAsync(t =>
+                t.UserPlantId == dto.UserPlantId &&
+                t.TreatmentType == dto.TaskType &&
+                t.Notes == "Pominięte automatyczne" &&
+                t.PerformedAt.Date == dto.DueDate.Date);
+
+            if (alreadySkipped) return;
+
+            _context.PlantTreatments.Add(new PlantTreatment
+            {
+                Id = Guid.NewGuid(),
+                UserPlantId = dto.UserPlantId,
+                TreatmentType = dto.TaskType,
+                PerformedAt = dto.DueDate.Date,
+                Notes = "Pominięte automatyczne"
+            });
+            await _context.SaveChangesAsync();
+        }
+
         [HttpGet("history")]
         public async Task<IActionResult> GetTaskHistory()
         {
@@ -246,7 +441,9 @@ namespace Zielnik.Controllers
             var history = await _context.PlantTreatments
                 .Include(t => t.UserPlant)
                 .ThenInclude(up => up.Plant)
-                .Where(t => t.UserPlant.Garden.UserId == userId && t.Notes != "Zaplanowane")
+                .Where(t => t.UserPlant.Garden.UserId == userId &&
+                            t.Notes != "Zaplanowane" &&
+                            t.Notes != "Pominięte automatyczne")
                 .OrderByDescending(t => t.PerformedAt)
                 .Take(10)
                 .Select(t => new {

@@ -32,6 +32,8 @@ namespace Zielnik.Entities
 
         public bool IsApproved { get; set; } = true;
 
+        public bool IsRejected { get; set; }
+
         public string? CreatedByUserId { get; set; }
 
         public IdentityUser? CreatedByUser { get; set; }

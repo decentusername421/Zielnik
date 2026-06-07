@@ -43,6 +43,7 @@
 </div>
 
 <script>
+    // Backend wykonuje agregacje ORM wyłącznie dla ogrodów zalogowanego użytkownika.
     fetch('/api/stats', {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwtToken') }
     })

@@ -26,8 +26,11 @@ namespace Zielnik.Controllers
         public async Task<ActionResult<List<PlantDto>>> GetPlants(
     [FromQuery] string? category)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Roślina użytkownika jest prywatna do czasu zaakceptowania jej przez administratora.
             var query = _context.Plants
-    .Where(p => p.IsApproved)
+    .Where(p => p.IsApproved || p.CreatedByUserId == userId)
     .Include(p => p.Categories)
     .Include(p => p.UserPlants)
         .ThenInclude(up => up.Garden)
@@ -47,6 +50,9 @@ namespace Zielnik.Controllers
                     Name = p.Name,
                     Species = p.Species,
                     WateringFrequencyDays = p.WateringFrequencyDays,
+                    IsApproved = p.IsApproved,
+                    IsRejected = p.IsRejected,
+                    IsOwner = p.CreatedByUserId == userId,
                     Categories = p.Categories
                         .Select(c => c.Name)
                         .ToList()
@@ -72,6 +78,8 @@ namespace Zielnik.Controllers
                 WateringFrequencyDays = dto.WateringFrequencyDays,
 
                 IsApproved = isAdmin,
+                IsRejected = false,
+                IsCustomPlant = !isAdmin,
                 CreatedByUserId = isAdmin ? null : userId
             };
 
@@ -86,7 +94,10 @@ namespace Zielnik.Controllers
                     Id = plant.Id,
                     Name = plant.Name,
                     Species = plant.Species,
-                    WateringFrequencyDays = plant.WateringFrequencyDays
+                    WateringFrequencyDays = plant.WateringFrequencyDays,
+                    IsApproved = plant.IsApproved,
+                    IsRejected = plant.IsRejected,
+                    IsOwner = !isAdmin
                 });
         }
 
@@ -140,13 +151,15 @@ namespace Zielnik.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<PlantDto>> GetPlant(Guid id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var plant = await _context.Plants
                 .Include(p => p.Categories)
                 .Include(p => p.UserPlants)
                 .ThenInclude(up => up.Garden)
                 .FirstOrDefaultAsync(p =>
                         p.Id == id &&
-                        p.IsApproved);
+                        (p.IsApproved || p.CreatedByUserId == userId));
 
             if (plant == null)
                 return NotFound();
@@ -157,6 +170,9 @@ namespace Zielnik.Controllers
                 Name = plant.Name,
                 Species = plant.Species,
                 WateringFrequencyDays = plant.WateringFrequencyDays,
+                IsApproved = plant.IsApproved,
+                IsRejected = plant.IsRejected,
+                IsOwner = plant.CreatedByUserId == userId,
 
                 Categories = plant.Categories
                     .Select(c => c.Name)
@@ -193,7 +209,7 @@ namespace Zielnik.Controllers
         public async Task<IActionResult> GetPendingPlants()
         {
             var plants = await _context.Plants
-                .Where(p => !p.IsApproved)
+                .Where(p => !p.IsApproved && !p.IsRejected)
                 .Select(p => new
                 {
                     p.Id,
@@ -217,9 +233,27 @@ namespace Zielnik.Controllers
                 return NotFound();
 
             plant.IsApproved = true;
+            plant.IsRejected = false;
 
             await _context.SaveChangesAsync();
 
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/reject")]
+        public async Task<IActionResult> RejectPlant(Guid id)
+        {
+            var plant = await _context.Plants.FirstOrDefaultAsync(p => p.Id == id);
+
+            if (plant == null)
+                return NotFound();
+
+            // Odrzucona propozycja pozostaje prywatną rośliną jej autora.
+            plant.IsApproved = false;
+            plant.IsRejected = true;
+
+            await _context.SaveChangesAsync();
             return NoContent();
         }
     }

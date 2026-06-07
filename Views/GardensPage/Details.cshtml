@@ -1,8 +1,35 @@
 ﻿<h1>🌿 Szczegóły ogrodu</h1>
 <div id="garden">Ładowanie...</div>
 
+<style>
+    .garden-plant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 14px;
+        max-width: 1100px;
+    }
+
+    .garden-plant-card {
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        padding: 14px;
+        background: white;
+        min-height: 115px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+
+    .garden-plant-card h3 {
+        margin: 0 0 7px;
+        color: #2e7d32;
+        font-size: 1.05rem;
+    }
+</style>
+
 <h2>🌱 Rośliny w tym ogrodzie</h2>
-<div id="my-plants-list">Ładowanie Twoich roślin...</div>
+<div id="my-plants-list" class="garden-plant-grid">Ładowanie Twoich roślin...</div>
 
 <hr>
 <h2>➕ Posadź nową roślinę</h2>
@@ -12,13 +39,13 @@
     <option value="all">⭐ Wszystkie</option>
 </select>
 
-<div id="plants-list">Ładowanie bazy roślin...</div>
+<div id="plants-list" class="garden-plant-grid">Ładowanie bazy roślin...</div>
 
 <script>
     const gardenId = window.location.pathname.split('/').pop();
     const token = localStorage.getItem('jwtToken');
 
-    // Funkcja pobierająca rośliny już posadzone w tym ogrodzie
+    // UserPlant reprezentuje konkretne nasadzenie wybranej rośliny w ogrodzie.
     function loadMyPlants() {
         fetch('/api/UserPlants', { headers: { 'Authorization': 'Bearer ' + token } })
         .then(r => r.json())
@@ -26,15 +53,18 @@
             const myPlants = data.filter(p => p.gardenId == gardenId);
             document.getElementById('my-plants-list').innerHTML = myPlants.length > 0
                 ? myPlants.map(p => `
-                    <div style="border-bottom:1px solid #eee; padding:5px; display:flex; justify-content:space-between;">
-                        <span>✅ ${p.nickname}</span>
-                        <button onclick="removePlant('${p.id}')" style="background:#d32f2f; color:white; border:none; padding:2px 8px; cursor:pointer;">Usuń</button>
+                    <div class="garden-plant-card">
+                        <div>
+                            <h3>✅ ${p.nickname || p.plantName}</h3>
+                            <p style="margin:5px 0;">${p.plantName}</p>
+                        </div>
+                        <button onclick="removePlant('${p.id}')" style="background:#d32f2f; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; align-self:flex-start;">Usuń</button>
                     </div>`).join('')
                 : '<div>Brak posadzonych roślin.</div>';
         });
     }
 
-    // Funkcja usuwająca roślinę z ogrodu
+    // Usuwamy nasadzenie użytkownika, a nie pozycję ze wspólnego katalogu roślin.
     function removePlant(userPlantId) {
         if(!confirm("Czy na pewno chcesz usunąć tę roślinę z ogrodu?")) return;
 
@@ -56,7 +86,7 @@
     .then(r => r.json())
     .then(g => document.getElementById('garden').innerHTML = `<h3>${g.name}</h3>`);
 
-    // Pobranie bazy roślin
+    // Katalog zawiera rośliny publiczne oraz prywatne propozycje bieżącego użytkownika.
     fetch('/api/Plants', { headers: { 'Authorization': 'Bearer ' + token } })
     .then(r => r.json())
     .then(data => {
@@ -75,14 +105,19 @@
 
     function renderPlants(plants) {
         document.getElementById('plants-list').innerHTML = plants.map(p => `
-            <div style="border:1px solid #ddd; padding:10px; margin:5px; display:flex; justify-content:space-between;">
-                <span>${p.name}</span>
-                <button onclick="plantSeed('${p.id}', '${p.name}')" style="background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer;">Posadź</button>
+            <div class="garden-plant-card">
+                <div>
+                    <h3>${p.name}</h3>
+                    <p style="margin:5px 0;">Gatunek: <b>${p.species}</b></p>
+                </div>
+                <button onclick="plantSeed('${p.id}')" style="background:#2e7d32; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; align-self:flex-start;">Posadź</button>
             </div>
         `).join('');
     }
 
-    function plantSeed(plantId, plantName) {
+    function plantSeed(plantId) {
+        // Połączenie gardenId i plantId tworzy nowe nasadzenie UserPlant.
+        const plantName = window.allPlants.find(p => p.id === plantId)?.name || "Roślina";
         const data = {
             gardenId: gardenId,
             plantId: plantId,
@@ -114,6 +149,5 @@
         renderPlants(filtered);
     }
 
-    // Wywołanie przy starcie
     loadMyPlants();
 </script>
