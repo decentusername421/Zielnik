@@ -38,7 +38,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ZielnikAPI";
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 // ======================
-// AUTH (POPRAWIONE!)
+// AUTH 
 // ======================
 builder.Services.AddAuthentication(options =>
 {
@@ -136,8 +136,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider
         .GetRequiredService<ZielnikDbContext>();
 
-    // Repozytorium zawiera starszą bazę i migracje przyrostowe. Dla pustej
-    // bazy tworzymy aktualny schemat, a istniejącą aktualizujemy migracjami.
+    // 
     if (context.Database.GetAppliedMigrations().Any())
         context.Database.Migrate();
     else
